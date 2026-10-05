@@ -11,7 +11,7 @@ from typing import Literal, Protocol
 import httpx
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite"
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
 
 
 class LLMError(RuntimeError):
@@ -70,7 +70,7 @@ class GeminiProvider:
             "generationConfig": config,
         }
         url = GEMINI_URL.format(model=self.model)
-        # The key goes in a header, never the URL: URLs end up in logs.
+        #The key goes in a header, never the URL: URLs end up in logs.
         headers = {"x-goog-api-key": self.api_key, "Content-Type": "application/json"}
 
         for attempt in range(2):
@@ -99,8 +99,8 @@ class GeminiProvider:
             )
         if response.status_code == 404:
             raise LLMError(
-                f"Gemini model {self.model!r} not found. Set APIDOC_GEMINI_MODEL to a model "
-                "listed in AI Studio."
+                f"Gemini model {self.model!r} unavailable: {_error_message(response)}. "
+                "Set APIDOC_GEMINI_MODEL to another model from the models list."
             )
         if response.status_code >= 400:
             raise LLMError(f"Gemini error {response.status_code}: {_error_message(response)}")
