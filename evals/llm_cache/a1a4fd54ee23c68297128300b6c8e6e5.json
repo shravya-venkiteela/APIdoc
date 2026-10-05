@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"content_type\",\n  \"summary\": \"The server rejected the request because the body is JSON but the Content-Type header was set to application/x-www-form-urlencoded.\",\n  \"evidence\": [\n    \"Content-Type: application/x-www-form-urlencoded\",\n    \"HTTP/1.1 415 Unsupported Media Type\",\n    \"(body) {\\\"name\\\": \\\"x\\\"}\"\n  ],\n  \"fix\": \"Change the Content-Type header to application/json to match the JSON request body.\",\n  \"confidence\": 0.95\n}"
+}

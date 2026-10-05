@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"bad_parameter\",\n  \"summary\": \"The page_size parameter value exceeds the maximum allowed limit set by the server.\",\n  \"evidence\": [\n    \"GET http://127.0.0.1:8765/v1/list?page_size=500\",\n    \"{\\\"errors\\\": \\\"page_size must be <= 100\\\"}\"\n  ],\n  \"fix\": \"Change the page_size parameter to be 100 or less.\",\n  \"confidence\": 1.0\n}"
+}

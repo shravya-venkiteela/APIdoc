@@ -181,9 +181,9 @@ def diagnose(
     if not kept:
         outcome.reason = "LLM answer discarded: none of its evidence appears in the trace"
         return rule_diag.redacted(redactor), outcome
-
     agrees = answer.category == rule_diag.category
-    if not agrees and rule_diag.confidence >= STRONG_RULE:
+    proven = bool(rule_diag.findings and rule_diag.confidence >= STRONG_RULE)
+    if not agrees and proven:
         outcome.reason = (
             f"LLM said {answer.category}, but rule finding {rule_diag.category} is "
             f"proven ({rule_diag.confidence:.2f}); kept the rule"

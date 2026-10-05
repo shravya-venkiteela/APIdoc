@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"auth_expired\",\n  \"summary\": \"The provided authentication token has expired.\",\n  \"evidence\": [\n    \"HTTP/1.1 401 Unauthorized\",\n    \"www-authenticate: Bearer error=\\\"invalid_token\\\", error_description=\\\"token expired\\\"\"\n  ],\n  \"fix\": \"Obtain a fresh authentication token and use it in the Authorization header.\",\n  \"confidence\": 0.95\n}"
+}

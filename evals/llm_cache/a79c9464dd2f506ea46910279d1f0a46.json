@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"not_found\",\n  \"summary\": \"The requested API endpoint does not exist on the server.\",\n  \"evidence\": [\n    \"GET http://127.0.0.1:8765/v1/meee\",\n    \"HTTP/1.1 404 Not Found\"\n  ],\n  \"fix\": \"Check the URL path for typos and ensure you are calling the correct API endpoint.\",\n  \"confidence\": 1.0\n}"
+}

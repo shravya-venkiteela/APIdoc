@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"auth_missing\",\n  \"summary\": \"The API call was redirected to a login page because authentication was missing.\",\n  \"evidence\": [\n    \"HTTP/1.1 302 Found\",\n    \"location: /login?next=/v1/sso-report\"\n  ],\n  \"fix\": \"Include valid authentication credentials or cookies in your request.\",\n  \"confidence\": 0.95\n}"
+}

@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"bad_parameter\",\n  \"summary\": \"The date format provided in the date_from query parameter is invalid and was rejected by the server with a 400 Bad Request error.\",\n  \"evidence\": [\n    \"GET http://127.0.0.1:8765/v1/search?date_from=05/10/2026\",\n    \"HTTP/1.1 400 Bad Request\",\n    \"{\\\"error\\\": \\\"invalid parameter\\\"}\"\n  ],\n  \"fix\": \"Check the API documentation for the expected date format (e.g., YYYY-MM-DD) and update the date_from parameter accordingly.\",\n  \"confidence\": 0.95\n}"
+}

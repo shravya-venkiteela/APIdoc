@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"method_not_allowed\",\n  \"summary\": \"The endpoint does not support the HTTP GET method and requires a different method instead.\",\n  \"evidence\": [\n    \"GET http://127.0.0.1:8765/v1/items\",\n    \"HTTP/1.1 405 Method Not Allowed\",\n    \"allow: POST\"\n  ],\n  \"fix\": \"Change the HTTP method of your request from GET to POST.\",\n  \"confidence\": 1.0\n}"
+}

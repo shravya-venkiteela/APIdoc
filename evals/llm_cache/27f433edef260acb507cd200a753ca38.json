@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"auth_scheme\",\n  \"summary\": \"The request failed because the authorization token was sent without the required 'Bearer ' prefix.\",\n  \"evidence\": [\n    \"HTTP/1.1 401 Unauthorized\",\n    \"www-authenticate: Bearer error=\\\"invalid_request\\\", error_description=\\\"expected 'Authorization: Bearer [REDACTED]'\\\"\"\n  ],\n  \"fix\": \"Add 'Bearer ' before the token value in the Authorization header.\",\n  \"confidence\": 0.95\n}"
+}

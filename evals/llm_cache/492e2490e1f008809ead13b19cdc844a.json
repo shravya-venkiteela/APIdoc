@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"not_acceptable\",\n  \"summary\": \"The server responded with 406 Not Acceptable because the requested content type is not supported.\",\n  \"evidence\": [\n    \"Accept: text/csv\",\n    \"HTTP/1.1 406 Not Acceptable\"\n  ],\n  \"fix\": \"Change the Accept header to a format supported by the endpoint, such as application/json.\",\n  \"confidence\": 0.95\n}"
+}

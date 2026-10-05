@@ -752,12 +752,15 @@ def diagnose_with_rules(ctx: Context) -> Diagnosis:
             findings=findings,
         )
     if final and final.status < 400:
+        # Low on purpose: people run APIdoc because something looks wrong, so
+        # "no rule found a problem" is weak evidence that nothing is. The eval
+        # caught this (h05: an SSO login page served as 200 OK).
         return Diagnosis(
             category=Category.OK,
             summary=f"The request succeeded ({final.status} {final.reason}).",
             evidence=[_status_line(final)],
             fix="Nothing to fix.",
-            confidence=0.9,
+            confidence=0.5,
         )
     status = f"{final.status} {final.reason}" if final else ctx.trace.error_kind or "no response"
     evidence = [f"final status: {status}"]

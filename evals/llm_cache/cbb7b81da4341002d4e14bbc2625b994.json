@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"malformed_body\",\n  \"summary\": \"The request body contains invalid JSON due to a trailing comma.\",\n  \"evidence\": [\n    \"{\\\"name\\\": \\\"x\\\",}\"\n  ],\n  \"fix\": \"Remove the trailing comma inside the JSON body so that it reads {\\\"name\\\": \\\"x\\\"}.\",\n  \"confidence\": 0.95\n}"
+}

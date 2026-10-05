@@ -154,7 +154,7 @@ def evaluate(cases: list[dict], base: str, provider) -> list[CaseResult]:
             rules=score(rules_d, expect),
             auto=score(rules_d, expect),
         )
-        #Re-diagnose unredacted to test the fix (the redacted one has [REDACTED] tokens).
+        # Re-diagnose unredacted to test the fix (the redacted one has [REDACTED] tokens).
         raw_d, _ = diagnose(ctx, _NoRedaction(), None, mode="never")
         result.fix_works = fix_works(raw_d, parsed.follow_redirects)
 
@@ -164,7 +164,7 @@ def evaluate(cases: list[dict], base: str, provider) -> list[CaseResult]:
             result.llm_note = outcome.reason
             result.llm_error = outcome.reason.startswith("LLM unavailable")
             result.dropped_evidence = len(outcome.dropped_evidence)
-            #"auto" = what users get: the LLM is only consulted when rules are unsure.
+            # "auto" = what users get: the LLM is only consulted when rules are unsure.
             if rules_d.confidence < STRONG_RULE:
                 result.auto = result.llm
             _print_progress(result, outcome)

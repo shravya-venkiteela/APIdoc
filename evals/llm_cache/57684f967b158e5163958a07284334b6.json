@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"auth_scope\",\n  \"summary\": \"Your token is valid but lacks the admin scope required for this endpoint.\",\n  \"evidence\": [\n    \"HTTP/1.1 403 Forbidden\",\n    \"www-authenticate: Bearer error=\\\"insufficient_scope\\\", error_description=\\\"requires admin scope\\\", scope=\\\"admin\\\"\"\n  ],\n  \"fix\": \"Obtain and use an access token that includes the 'admin' scope.\",\n  \"confidence\": 0.95\n}"
+}

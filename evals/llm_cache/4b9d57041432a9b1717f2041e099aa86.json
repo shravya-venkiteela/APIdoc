@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"rate_limited\",\n  \"summary\": \"You have exceeded the API rate limit and must wait before making more requests.\",\n  \"evidence\": [\n    \"HTTP/1.1 429 Too Many Requests\",\n    \"retry-after: 30\",\n    \"x-ratelimit-remaining: 0\"\n  ],\n  \"fix\": \"Wait for the duration specified in the retry-after header (30 seconds) before sending another request.\",\n  \"confidence\": 0.95\n}"
+}

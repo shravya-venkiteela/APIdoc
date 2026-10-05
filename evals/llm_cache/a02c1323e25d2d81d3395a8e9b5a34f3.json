@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"validation\",\n  \"summary\": \"The request body is missing the required 'age' field.\",\n  \"evidence\": [\n    \"HTTP/1.1 422 Unprocessable Content\",\n    \"{\\\"detail\\\": [{\"type\": \"missing\", \"loc\": [\"body\", \"age\"], \"msg\": \"Field required\", \"input\": {\"email\": \"a@b.c\"}}]}\"\n  ],\n  \"fix\": \"Add the missing 'age' field to the JSON request body.\",\n  \"confidence\": 1.0\n}"
+}

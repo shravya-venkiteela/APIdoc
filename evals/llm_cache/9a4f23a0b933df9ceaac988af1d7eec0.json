@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"auth_missing\",\n  \"summary\": \"The request failed because it did not include the required X-API-Key header.\",\n  \"evidence\": [\n    \"HTTP/1.1 401 Unauthorized\",\n    \"{\\\"error\\\": \\\"missing X-API-Key header\\\"}\"\n  ],\n  \"fix\": \"Add an X-API-Key header containing your API key to the request.\",\n  \"confidence\": 0.95\n}"
+}

@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"malformed_body\",\n  \"summary\": \"The request body contains invalid JSON because property names must be enclosed in double quotes.\",\n  \"evidence\": [\n    \"(body) {name: x}\"\n  ],\n  \"fix\": \"Change the request body to valid JSON by wrapping the key in double quotes, like {\\\"name\\\": \\\"x\\\"}.\",\n  \"confidence\": 0.9\n}"
+}

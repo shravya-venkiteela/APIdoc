@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"error_in_success\",\n  \"summary\": \"The API returned a 200 OK status code, but the response body indicates that the monthly quota has been exceeded.\",\n  \"evidence\": [\n    \"HTTP/1.1 200 OK\",\n    \"{\\\"ok\\\": false, \\\"error\\\": {\"\n  ],\n  \"fix\": \"Upgrade your plan or wait until your quota resets to make more requests.\",\n  \"confidence\": 0.95\n}"
+}

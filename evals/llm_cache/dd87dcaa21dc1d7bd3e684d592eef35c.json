@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"api_key_location\",\n  \"summary\": \"The API key was sent as a query parameter instead of in the required X-API-Key header.\",\n  \"evidence\": [\n    \"GET http://127.0.0.1:8765/v1/keyed?api_key=[REDACTED]\",\n    \"HTTP/1.1 401 Unauthorized\",\n    \"{\\\"error\\\": \\\"missing X-API-Key header\\\"}\"\n  ],\n  \"fix\": \"Pass the API key in the 'X-API-Key' header instead of the query string.\",\n  \"confidence\": 0.95\n}"
+}

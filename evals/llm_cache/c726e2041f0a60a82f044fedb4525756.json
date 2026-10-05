@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"server_error\",\n  \"summary\": \"The server encountered an unexpected internal error while processing the request.\",\n  \"evidence\": [\n    \"HTTP/1.1 500 Internal Server Error\",\n    \"{\\\"error\\\": \\\"internal error\\\"}\"\n  ],\n  \"fix\": \"Check the server-side logs and implementation to fix the internal error.\",\n  \"confidence\": 0.95\n}"
+}

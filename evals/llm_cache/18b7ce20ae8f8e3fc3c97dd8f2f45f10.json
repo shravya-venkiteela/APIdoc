@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"method_changed_on_redirect\",\n  \"summary\": \"The server responded with a 301 redirect that incorrectly changed your POST request into a GET request and dropped the body.\",\n  \"evidence\": [\n    \"HTTP/1.1 301 Moved Permanently\",\n    \"location: /v1/items\",\n    \"GET http://127.0.0.1:8765/v1/items\",\n    \"HTTP/1.1 405 Method Not Allowed\"\n  ],\n  \"fix\": \"Update your request URL to point directly to the new endpoint http://127.0.0.1:8765/v1/items instead of relying on the redirect, or ensure the client preserves the POST method.\",\n  \"confidence\": 0.9\n}"
+}

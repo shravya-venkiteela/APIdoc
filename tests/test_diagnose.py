@@ -170,3 +170,36 @@ def test_llm_echoing_a_secret_is_redacted(live_server):
     )
     d, _ = diagnose(ctx, redactor, fake, mode="always")
     assert "leaky-t0ken-value" not in d.model_dump_json()
+
+
+def test_no_rule_finding_cannot_overrule_the_llm(live_server):
+    """Regression from the eval (h05): SSO redirect ends on a 200 HTML login page.
+
+    No rule fires, so the rules' verdict is the fallback "ok". That absence of
+    findings must not overrule an LLM that spotted the login page.
+    """
+    ctx, redactor = context_for(f"curl -L {live_server}/v1/sso-report")
+    fake = FakeProvider(
+        [
+            answer(
+                "auth_missing",
+                ["Sign in - Example SSO"],
+                summary="You were redirected to a login page: the request had no session.",
+            )
+        ]
+    )
+    d, outcome = diagnose(ctx, redactor, fake, mode="auto")
+    assert outcome.called, "auto mode must consult the LLM when rules only say 'ok'"
+    assert d.category == Category.AUTH_MISSING
+    assert d.source == "llm"
+
+
+def test_a_real_rule_finding_still_overrules(live_server):
+    """The other overrule from the eval (b03) was correct and must stay."""
+    ctx, redactor = context_for(
+        f"curl -H 'Authorization: Bearer Bearer good-token' {live_server}/v1/me"
+    )
+    fake = FakeProvider([answer("auth_invalid", ["401"], summary="Bad token.")])
+    d, outcome = diagnose(ctx, redactor, fake, mode="always")
+    assert d.category == Category.AUTH_SCHEME
+    assert "kept the rule" in outcome.reason

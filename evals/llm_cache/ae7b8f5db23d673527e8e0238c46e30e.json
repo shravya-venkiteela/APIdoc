@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"auth_missing\",\n  \"summary\": \"The API request failed because no authentication credentials were provided.\",\n  \"evidence\": [\n    \"HTTP/1.1 401 Unauthorized\",\n    \"www-authenticate: Bearer\",\n    \"{\\\"error\\\": \\\"unauthorized\\\"}\"\n  ],\n  \"fix\": \"Add a valid Bearer token to the Authorization header of your request.\",\n  \"confidence\": 0.95\n}"
+}

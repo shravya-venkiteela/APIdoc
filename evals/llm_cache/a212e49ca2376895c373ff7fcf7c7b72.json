@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"auth_expired\",\n  \"summary\": \"The authentication token has expired, resulting in a 401 Unauthorized error from the server.\",\n  \"evidence\": [\n    \"HTTP/1.1 401 Unauthorized\",\n    \"{\\\"message\\\": \\\"Signature has expired\\\"}\"\n  ],\n  \"fix\": \"Obtain a fresh authentication token and update the Authorization header with the new Bearer token.\",\n  \"confidence\": 1.0\n}"
+}

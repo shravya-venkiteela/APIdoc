@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"validation\",\n  \"summary\": \"The request body failed validation because the amount parameter must be a positive number.\",\n  \"evidence\": [\n    \"HTTP/1.1 422 Unprocessable Content\",\n    \"{\\\"message\\\": \\\"Validation failed\\\", \\\"details\\\": {\\\"amount\\\": \\\"must be positive\\\"}}\"\n  ],\n  \"fix\": \"Change the 'amount' field in the request body to a positive value.\",\n  \"confidence\": 1.0\n}"
+}
