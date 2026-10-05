@@ -2,9 +2,10 @@ import base64
 import json
 import string
 
-from apidoc.redact import MASK, Redactor
 from hypothesis import given, settings
 from hypothesis import strategies as st
+
+from apidoc.redact import MASK, Redactor
 
 # Secrets: 8-48 characters of the alphabet real tokens use.
 SECRET_CHARS = string.ascii_letters + string.digits + "-_."
@@ -55,20 +56,27 @@ def test_redaction_is_idempotent(secret, before, after):
 @given(secret=secrets)
 @settings(max_examples=300)
 def test_unknown_secret_in_sensitive_places(secret):
-    """No known values registered: the patterns alone must catch these."""
+    """No known values registered: the patterns alone must catch these.
+
+    A random secret can collide with ordinary text in the template (secret
+    "Authoriz" is inside the header name "Authorization"), so the check is:
+    the secret appears no more often than in the template without it.
+    """
     r = Redactor()
-    places = [
-        f"curl -H 'Authorization: Bearer {secret}' https://x.test",
-        f"https://x.test/v1?api_key={secret}&page=2",
-        f"https://x.test/v1?page=2&access_token={secret}",
-        f"https://user:{secret}@x.test/v1",
-        f"curl -u admin:{secret} https://x.test",
-        f"client_secret={secret}&grant_type=client_credentials",
-        f'{{"password": "{secret}", "user": "a"}}',
-        f"Cookie: session={secret}",
+    templates = [
+        "curl -H 'Authorization: Bearer {s}' https://x.test",
+        "https://x.test/v1?api_key={s}&page=2",
+        "https://x.test/v1?page=2&access_token={s}",
+        "https://user:{s}@x.test/v1",
+        "curl -u admin:{s} https://x.test",
+        "client_secret={s}&grant_type=client_credentials",
+        '{{"password": "{s}", "user": "a"}}',
+        "Cookie: session={s}",
     ]
-    for place in places:
-        assert secret not in r.text(place), place
+    for template in templates:
+        place = template.format(s=secret)
+        allowed = template.format(s="").count(secret)
+        assert r.text(place).count(secret) <= allowed, place
 
 
 @given(secret=secrets)
@@ -84,7 +92,8 @@ def test_json_bodies_masked_by_key_name_at_any_depth(secret):
     r = Redactor()
     body = {"data": [{"auth": {"refresh_token": secret}}], "client_secret": secret, "n": 1}
     out = json.dumps(r.json(body))
-    assert secret not in out
+    skeleton = json.dumps({"data": [{"auth": {"refresh_token": ""}}], "client_secret": "", "n": 1})
+    assert out.count(secret) <= skeleton.count(secret)  # see collision note above
     assert '"n": 1' in out  # non-secret data untouched
 
 

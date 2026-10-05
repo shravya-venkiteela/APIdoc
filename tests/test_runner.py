@@ -1,6 +1,7 @@
 import socket
 
 import pytest
+
 from apidoc.curl import parse_curl
 from apidoc.redact import MASK
 from apidoc.runner import UnsafeRequestError, run

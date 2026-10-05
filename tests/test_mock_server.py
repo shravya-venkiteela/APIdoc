@@ -43,3 +43,13 @@ def test_old_me_redirects_to_other_host():
     r = client.get("/v1/old-me", follow_redirects=False)
     assert r.status_code == 302
     assert r.headers["location"] == "http://127.0.0.1:8000/v1/me"
+
+
+def test_jwt_accepted_and_expired_rejected():
+    from mock_server import tokens
+
+    ok = client.get("/v1/me", headers={"Authorization": f"Bearer {tokens.mint()}"})
+    assert ok.status_code == 200
+    old = client.get("/v1/me", headers={"Authorization": f"Bearer {tokens.mint(ttl=-3600)}"})
+    assert old.status_code == 401
+    assert "token expired" in old.headers["www-authenticate"]

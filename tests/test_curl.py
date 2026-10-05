@@ -3,11 +3,12 @@ import shlex
 import string
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+
 from apidoc.curl import CurlParseError, parse_curl
 from apidoc.export import to_curl, to_httpx
 from apidoc.models import Request
-from hypothesis import given
-from hypothesis import strategies as st
 
 # parsing: what curl actually sends
 
