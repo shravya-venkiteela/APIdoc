@@ -153,3 +153,13 @@ def test_cache_key_changes_with_prompt_and_model(tmp_path):
 def test_live_mode_never_writes(tmp_path):
     CachedProvider(FakeProvider(["x"]), tmp_path, mode="live").complete("s", "p")
     assert list(tmp_path.iterdir()) == []
+
+
+def test_normalizer_makes_volatile_prompts_share_a_key(tmp_path):
+    import re
+
+    def drop_dates(text):
+        return re.sub(r"date: .*", "date: <date>", text)
+
+    c = CachedProvider(FakeProvider([]), tmp_path, normalize=drop_dates)
+    assert c.key("s", "date: Mon, 05 Oct 2026") == c.key("s", "date: Tue, 06 Oct 2026")

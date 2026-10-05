@@ -588,7 +588,9 @@ def method_not_allowed(ctx: Context) -> Finding | None:
         evidence.append(f"Allow: {allow}")
         allowed = [m.strip().upper() for m in allow.split(",") if m.strip()]
         if allowed and final.request.method not in allowed:
-            patch = Patch(method=allowed[0])
+            target = allowed[0]
+            if target not in UNSAFE_METHODS or final.request.body:
+                patch = Patch(method=target)
     return Finding(
         rule="",
         category=Category.METHOD_NOT_ALLOWED,

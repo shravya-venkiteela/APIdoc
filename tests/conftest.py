@@ -29,3 +29,12 @@ def live_server():
     yield f"http://127.0.0.1:{port}"
     server.should_exit = True
     thread.join(timeout=5)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_environment(monkeypatch):
+    """Tests must not depend on the developer's shell. A GEMINI_API_KEY or
+    APIDOC_GEMINI_THINKING left set in the terminal would otherwise change
+    behaviour (and could make a test call the real API)."""
+    for name in ("GEMINI_API_KEY", "APIDOC_GEMINI_MODEL", "APIDOC_GEMINI_THINKING"):
+        monkeypatch.delenv(name, raising=False)

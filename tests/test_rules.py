@@ -122,10 +122,12 @@ def test_post_turned_into_get_by_301(live_server):
     assert_fix_works(d)
 
 
-def test_method_not_allowed_suggests_allowed_method(live_server):
+def test_method_not_allowed_names_allowed_method(live_server):
     d = diagnose(f"curl {live_server}/v1/items")
     assert d.category == Category.METHOD_NOT_ALLOWED
-    assert d.fixed_request.method == "POST"
+    assert "POST" in d.summary
+    # No automatic fix: a POST without the body the endpoint needs would fail too.
+    assert d.fixed_request is None
 
 
 def test_not_found(live_server):

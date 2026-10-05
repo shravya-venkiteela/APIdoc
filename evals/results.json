@@ -1,0 +1,786 @@
+[
+  {
+    "id": "b01",
+    "audience": "beginner",
+    "title": "no credentials at all",
+    "expected": "auth_missing",
+    "rules": {
+      "category": "auth_missing",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The request had no credentials, so the server refused it."
+    },
+    "auto": {
+      "category": "auth_missing",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The request had no credentials, so the server refused it."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "b02",
+    "audience": "beginner",
+    "title": "token without 'Bearer '",
+    "expected": "auth_scheme",
+    "rules": {
+      "category": "auth_scheme",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "The token was sent without an auth scheme: it needs \"Bearer \" in front."
+    },
+    "auto": {
+      "category": "auth_scheme",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "The token was sent without an auth scheme: it needs \"Bearer \" in front."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": true,
+    "notes": []
+  },
+  {
+    "id": "b03",
+    "audience": "beginner",
+    "title": "'Bearer' written twice",
+    "expected": "auth_scheme",
+    "rules": {
+      "category": "auth_scheme",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The Authorization header says \"Bearer\" twice."
+    },
+    "auto": {
+      "category": "auth_scheme",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The Authorization header says \"Bearer\" twice."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": true,
+    "notes": []
+  },
+  {
+    "id": "b04",
+    "audience": "beginner",
+    "title": "JSON sent with -d (form content type)",
+    "expected": "content_type",
+    "rules": {
+      "category": "content_type",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "You sent JSON but labelled it as application/x-www-form-urlencoded, so the server did not read it as JSON."
+    },
+    "auto": {
+      "category": "content_type",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "You sent JSON but labelled it as application/x-www-form-urlencoded, so the server did not read it as JSON."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": true,
+    "notes": []
+  },
+  {
+    "id": "b05",
+    "audience": "beginner",
+    "title": "quotes eaten by the shell",
+    "expected": "malformed_body",
+    "rules": {
+      "category": "malformed_body",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "The request body is not valid JSON."
+    },
+    "auto": {
+      "category": "malformed_body",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "The request body is not valid JSON."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "b06",
+    "audience": "beginner",
+    "title": "trailing comma in JSON",
+    "expected": "malformed_body",
+    "rules": {
+      "category": "malformed_body",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "The request body is not valid JSON."
+    },
+    "auto": {
+      "category": "malformed_body",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "The request body is not valid JSON."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "b07",
+    "audience": "beginner",
+    "title": "API key in the query string",
+    "expected": "api_key_location",
+    "rules": {
+      "category": "api_key_location",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The API key went in the URL (?api_key=[REDACTED] but the API expects it in a header."
+    },
+    "auto": {
+      "category": "api_key_location",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The API key went in the URL (?api_key=[REDACTED] but the API expects it in a header."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": true,
+    "notes": []
+  },
+  {
+    "id": "b08",
+    "audience": "beginner",
+    "title": "API key header missing",
+    "expected": "auth_missing",
+    "rules": {
+      "category": "auth_missing",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The request had no credentials; the API wants a `X-API-Key` header."
+    },
+    "auto": {
+      "category": "auth_missing",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The request had no credentials; the API wants a `X-API-Key` header."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "b09",
+    "audience": "beginner",
+    "title": "typo in the path",
+    "expected": "not_found",
+    "rules": {
+      "category": "not_found",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.5,
+      "source": "rules",
+      "summary": "The server has nothing at /v1/meee."
+    },
+    "auto": {
+      "category": "not_found",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.5,
+      "source": "rules",
+      "summary": "The server has nothing at /v1/meee."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "b10",
+    "audience": "beginner",
+    "title": "GET on a POST-only endpoint",
+    "expected": "method_not_allowed",
+    "rules": {
+      "category": "method_not_allowed",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.8,
+      "source": "rules",
+      "summary": "This URL does not accept GET; it accepts POST."
+    },
+    "auto": {
+      "category": "method_not_allowed",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.8,
+      "source": "rules",
+      "summary": "This URL does not accept GET; it accepts POST."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "b11",
+    "audience": "beginner",
+    "title": "required field missing",
+    "expected": "validation",
+    "rules": {
+      "category": "validation",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The server understood the request but rejected these fields: age: Field required."
+    },
+    "auto": {
+      "category": "validation",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The server understood the request but rejected these fields: age: Field required."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "b12",
+    "audience": "beginner",
+    "title": "nothing listening on that port",
+    "expected": "connection",
+    "rules": {
+      "category": "connection",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "Could not connect to 127.0.0.1:9: nothing answered at that address."
+    },
+    "auto": {
+      "category": "connection",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "Could not connect to 127.0.0.1:9: nothing answered at that address."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "e01",
+    "audience": "experienced",
+    "title": "auth dropped on cross-host redirect",
+    "expected": "auth_dropped_on_redirect",
+    "rules": {
+      "category": "auth_dropped_on_redirect",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "Your Authorization header was dropped when the redirect moved from 127.0.0.1:8765 to localhost:8765, so the server never saw your token."
+    },
+    "auto": {
+      "category": "auth_dropped_on_redirect",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "Your Authorization header was dropped when the redirect moved from 127.0.0.1:8765 to localhost:8765, so the server never saw your token."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": true,
+    "notes": []
+  },
+  {
+    "id": "e02",
+    "audience": "experienced",
+    "title": "301 turns POST into GET",
+    "expected": "method_changed_on_redirect",
+    "rules": {
+      "category": "method_changed_on_redirect",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "The 301 redirect turned your POST into a GET and dropped the body."
+    },
+    "auto": {
+      "category": "method_changed_on_redirect",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "The 301 redirect turned your POST into a GET and dropped the body."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": true,
+    "notes": []
+  },
+  {
+    "id": "e03",
+    "audience": "experienced",
+    "title": "expired JWT",
+    "expected": "auth_expired",
+    "rules": {
+      "category": "auth_expired",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "Your token expired 277 days ago."
+    },
+    "auto": {
+      "category": "auth_expired",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "Your token expired 277 days ago."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "e04",
+    "audience": "experienced",
+    "title": "JWT not valid yet (clock)",
+    "expected": "auth_not_yet_valid",
+    "rules": {
+      "category": "auth_not_yet_valid",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "Your token is not valid for another 26385 days."
+    },
+    "auto": {
+      "category": "auth_not_yet_valid",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "Your token is not valid for another 26385 days."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "e05",
+    "audience": "experienced",
+    "title": "valid token, missing scope",
+    "expected": "auth_scope",
+    "rules": {
+      "category": "auth_scope",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "Your token is valid but lacks the `admin` scope this endpoint needs."
+    },
+    "auto": {
+      "category": "auth_scope",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "Your token is valid but lacks the `admin` scope this endpoint needs."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "e06",
+    "audience": "experienced",
+    "title": "JWT with read scope on admin endpoint",
+    "expected": "auth_scope",
+    "rules": {
+      "category": "auth_scope",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "Your token is valid but lacks the `admin` scope this endpoint needs."
+    },
+    "auto": {
+      "category": "auth_scope",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "Your token is valid but lacks the `admin` scope this endpoint needs."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "e07",
+    "audience": "experienced",
+    "title": "tampered JWT signature",
+    "expected": "auth_invalid",
+    "rules": {
+      "category": "auth_invalid",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.7,
+      "source": "rules",
+      "summary": "The server rejected the token: malformed token: bad signature."
+    },
+    "auto": {
+      "category": "auth_invalid",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.7,
+      "source": "rules",
+      "summary": "The server rejected the token: malformed token: bad signature."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "e08",
+    "audience": "experienced",
+    "title": "rate limited",
+    "expected": "rate_limited",
+    "rules": {
+      "category": "rate_limited",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "You hit the API's rate limit."
+    },
+    "auto": {
+      "category": "rate_limited",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.95,
+      "source": "rules",
+      "summary": "You hit the API's rate limit."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "e09",
+    "audience": "experienced",
+    "title": "200 with an error body",
+    "expected": "error_in_success",
+    "rules": {
+      "category": "error_in_success",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The status says 200 OK, but the body reports an error."
+    },
+    "auto": {
+      "category": "error_in_success",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The status says 200 OK, but the body reports an error."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "e10",
+    "audience": "experienced",
+    "title": "406 Not Acceptable",
+    "expected": "not_acceptable",
+    "rules": {
+      "category": "not_acceptable",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "You asked for text/csv, which this endpoint cannot produce."
+    },
+    "auto": {
+      "category": "not_acceptable",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "You asked for text/csv, which this endpoint cannot produce."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": true,
+    "notes": []
+  },
+  {
+    "id": "e11",
+    "audience": "experienced",
+    "title": "server error",
+    "expected": "server_error",
+    "rules": {
+      "category": "server_error",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.75,
+      "source": "rules",
+      "summary": "The server crashed while handling the request."
+    },
+    "auto": {
+      "category": "server_error",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.75,
+      "source": "rules",
+      "summary": "The server crashed while handling the request."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "h01",
+    "audience": "hard",
+    "title": "vague 400: date in the wrong format",
+    "expected": "bad_parameter",
+    "rules": {
+      "category": "bad_parameter",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.3,
+      "source": "rules",
+      "summary": "The server rejected the request (400) without saying which part is wrong."
+    },
+    "auto": {
+      "category": "bad_parameter",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.3,
+      "source": "rules",
+      "summary": "The server rejected the request (400) without saying which part is wrong."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "h02",
+    "audience": "hard",
+    "title": "400 reason given as a plain string",
+    "expected": "bad_parameter",
+    "rules": {
+      "category": "bad_parameter",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.3,
+      "source": "rules",
+      "summary": "The server rejected the request (400) without saying which part is wrong."
+    },
+    "auto": {
+      "category": "bad_parameter",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.3,
+      "source": "rules",
+      "summary": "The server rejected the request (400) without saying which part is wrong."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "h03",
+    "audience": "hard",
+    "title": "422 in a non-standard error shape",
+    "expected": "validation",
+    "rules": {
+      "category": "unknown",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.1,
+      "source": "rules",
+      "summary": "The request failed (422 Unprocessable Content) and no rule recognised the cause."
+    },
+    "auto": {
+      "category": "unknown",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.1,
+      "source": "rules",
+      "summary": "The request failed (422 Unprocessable Content) and no rule recognised the cause."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "h04",
+    "audience": "hard",
+    "title": "opaque token expired (message only)",
+    "expected": "auth_expired",
+    "rules": {
+      "category": "auth_invalid",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.55,
+      "source": "rules",
+      "summary": "The server rejected the token."
+    },
+    "auto": {
+      "category": "auth_invalid",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.55,
+      "source": "rules",
+      "summary": "The server rejected the token."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "h05",
+    "audience": "hard",
+    "title": "SSO redirect ends on a 200 HTML login page",
+    "expected": "auth_missing",
+    "rules": {
+      "category": "ok",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "The request succeeded (200 OK)."
+    },
+    "auto": {
+      "category": "ok",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.9,
+      "source": "rules",
+      "summary": "The request succeeded (200 OK)."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  }
+]

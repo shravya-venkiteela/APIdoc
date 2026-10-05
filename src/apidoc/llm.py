@@ -70,7 +70,7 @@ class GeminiProvider:
             "generationConfig": config,
         }
         url = GEMINI_URL.format(model=self.model)
-        #The key goes in a header, never the URL: URLs end up in logs.
+        # The key goes in a header, never the URL: URLs end up in logs.
         headers = {"x-goog-api-key": self.api_key, "Content-Type": "application/json"}
 
         for attempt in range(2):
@@ -155,8 +155,6 @@ class FakeProvider:
         return self._queue.pop(0)
 
 
-# ------------------------------------------------------------------ cache ---
-
 CacheMode = Literal["live", "record", "replay"]
 
 
@@ -168,7 +166,9 @@ class CachedProvider:
     replay  only use the cache; a miss is an error (this is what CI runs)
 
     Keys hash the provider, model and full prompt, so changing the prompt or
-    the model invalidates old recordings automatically.
+    the model invalidates old recordings automatically. `normalize` lets the
+    eval strip values that change on every run (server Date headers, "5
+    minutes ago") from the key, so replay still finds the recording.
     """
 
     def __init__(
@@ -177,6 +177,7 @@ class CachedProvider:
         cache_dir: Path,
         mode: CacheMode = "record",
         min_interval_s: float = 0.0,
+        normalize: Callable[[str], str] | None = None,
     ) -> None:
         self.inner = inner
         self.name = inner.name
@@ -184,12 +185,13 @@ class CachedProvider:
         self.cache_dir = Path(cache_dir)
         self.mode = mode
         self.min_interval_s = min_interval_s
+        self.normalize = normalize or (lambda text: text)
         self._last_call = 0.0
         self.live_calls = 0
         self.cache_hits = 0
 
     def key(self, system: str, prompt: str) -> str:
-        raw = json.dumps([self.name, self.model, system, prompt]).encode()
+        raw = json.dumps([self.name, self.model, system, self.normalize(prompt)]).encode()
         return hashlib.sha256(raw).hexdigest()[:32]
 
     def complete(self, system: str, prompt: str) -> str:

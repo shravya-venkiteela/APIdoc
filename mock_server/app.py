@@ -172,3 +172,52 @@ async def search(date_from: str | None = None) -> JSONResponse:
 @app.get("/v1/broken")
 async def broken() -> JSONResponse:
     return JSONResponse({"error": "internal error"}, status_code=500)
+
+
+@app.get("/v1/list")
+async def list_things(page_size: int = 20) -> JSONResponse:
+    """The reason is in the body, but as a plain string, not a field list."""
+    if page_size > 100:
+        return JSONResponse({"errors": "page_size must be <= 100"}, status_code=400)
+    return JSONResponse({"items": [], "page_size": page_size})
+
+
+@app.post("/v1/payments")
+async def payments(request: Request) -> JSONResponse:
+    """422 in a non-FastAPI error shape: details is a dict, not a list."""
+    body = await request.json()
+    if body.get("amount", 0) <= 0:
+        return JSONResponse(
+            {"message": "Validation failed", "details": {"amount": "must be positive"}},
+            status_code=422,
+        )
+    return JSONResponse({"paid": body["amount"]}, status_code=201)
+
+
+@app.get("/v1/legacy/me")
+async def legacy_me(request: Request) -> JSONResponse:
+    """An opaque (non-JWT) token that has expired. No WWW-Authenticate header;
+    the only clue is the message. Rules can only say "token rejected"."""
+    if request.headers.get("authorization") == "Bearer legacy-2fa81c":
+        return JSONResponse({"message": "Signature has expired"}, status_code=401)
+    return JSONResponse({"message": "Unauthorized"}, status_code=401)
+
+
+@app.get("/v1/sso-report")
+async def sso_report(request: Request):
+    """Classic SSO trap: no session cookie, so the API redirects to a login
+    page and curl -L ends on 200 OK... with an HTML sign-in form."""
+    if "session=" not in request.headers.get("cookie", ""):
+        return RedirectResponse("/login?next=/v1/sso-report", status_code=302)
+    return JSONResponse({"report": []})
+
+
+@app.get("/login")
+async def login_page():
+    from fastapi.responses import HTMLResponse
+
+    return HTMLResponse(
+        "<!doctype html><html><head><title>Sign in - Example SSO</title></head>"
+        "<body><form method='post'><input name='user'><input name='password' type='password'>"
+        "</form></body></html>"
+    )
