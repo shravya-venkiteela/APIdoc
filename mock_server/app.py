@@ -58,3 +58,10 @@ async def old_me(request: Request) -> RedirectResponse:
     other = "127.0.0.1" if host == "localhost" else "localhost"
     port = request.url.port or 80
     return RedirectResponse(f"http://{other}:{port}/v1/me", status_code=302)
+
+
+@app.post("/v1/old-items")
+async def old_items() -> RedirectResponse:
+    """Moved permanently. A 301 makes curl -L and httpx re-send the POST as a GET,
+    without the body, so the client ends up with 405 Method Not Allowed."""
+    return RedirectResponse("/v1/items", status_code=301)

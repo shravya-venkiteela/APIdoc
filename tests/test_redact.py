@@ -2,10 +2,9 @@ import base64
 import json
 import string
 
+from apidoc.redact import MASK, Redactor
 from hypothesis import given, settings
 from hypothesis import strategies as st
-
-from apidoc.redact import MASK, Redactor
 
 # Secrets: 8-48 characters of the alphabet real tokens use.
 SECRET_CHARS = string.ascii_letters + string.digits + "-_."
