@@ -1,4 +1,4 @@
-﻿import base64
+import base64
 import json
 import string
 
@@ -7,16 +7,16 @@ from hypothesis import strategies as st
 
 from apidoc.redact import MASK, Redactor
 
-#Secrets: 8-48 characters of the alphabet real tokens use.
+# Secrets: 8-48 characters of the alphabet real tokens use.
 SECRET_CHARS = string.ascii_letters + string.digits + "-_."
 secrets = st.text(alphabet=SECRET_CHARS, min_size=8, max_size=48).filter(
     lambda s: s not in MASK and not s.strip("-_.") == ""
 )
-#Surrounding text: anything printable.
+# Surrounding text: anything printable.
 noise = st.text(alphabet=string.printable, max_size=80)
 
 
-#known values
+# known values
 
 
 @given(secret=secrets, before=noise, after=noise)
@@ -50,7 +50,7 @@ def test_redaction_is_idempotent(secret, before, after):
     assert r.text(once) == once
 
 
-#unknown values, caught by pattern
+# unknown values, caught by pattern
 
 
 @given(secret=secrets)
@@ -123,7 +123,7 @@ def test_cookie_header_masks_every_value():
     assert out.startswith("sid=")
 
 
-#no false positives on ordinary data
+# no false positives on ordinary data
 def test_ordinary_text_untouched():
     r = Redactor()
     for text in [
@@ -139,13 +139,13 @@ def test_ordinary_text_untouched():
 
 
 def test_error_codes_and_lookalike_keys_survive():
-    #Error codes are the evidence the diagnosis needs; "author" is not "auth".
+    # Error codes are the evidence the diagnosis needs; "author" is not "auth".
     body = {"error": {"code": "INVALID_ARGUMENT", "message": "bad date"}, "author": "sam"}
     assert Redactor().json(body) == body
     assert Redactor().text("?author=sam&page=2") == "?author=sam&page=2"
 
 
 def test_short_values_are_not_registered():
-    #Masking "ab" everywhere would destroy the trace and protect nothing.
+    # Masking "ab" everywhere would destroy the trace and protect nothing.
     r = Redactor(["ab", ""])
     assert r.known_count == 0

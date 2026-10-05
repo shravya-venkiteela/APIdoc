@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import base64
 import re
@@ -8,7 +8,7 @@ from urllib.parse import quote, quote_plus
 
 MASK = "[REDACTED]"
 
-#Headers whose whole value is a credential.
+# Headers whose whole value is a credential.
 SENSITIVE_HEADERS = {
     "authorization",
     "proxy-authorization",
@@ -24,30 +24,30 @@ SENSITIVE_HEADERS = {
     "private-token",
 }
 
-#Names that mark a value as secret in query strings, form bodies and JSON.
-#Deliberately NOT included: "code" (error codes are key evidence; the OAuth
-#authorization code is caught by the query-string pattern) and bare "auth"
-#substrings (would hit "author", "authority").
+# Names that mark a value as secret in query strings, form bodies and JSON.
+# Deliberately NOT included: "code" (error codes are key evidence; the OAuth
+# authorization code is caught by the query-string pattern) and bare "auth"
+# substrings (would hit "author", "authority").
 SENSITIVE_KEY = re.compile(
     r"(pass(word|wd)?|secret|token|api[-_]?key|apikey|^key$|^auth$|authorization|"
     r"credential|session|^sig$|signature|code_verifier|private[-_]?key)",
     re.IGNORECASE,
 )
 
-#Auth schemes whose name we keep, so the diagnosis can still say "Bearer".
+# Auth schemes whose name we keep, so the diagnosis can still say "Bearer".
 _SCHEME_VALUE = re.compile(r"^\s*(Bearer|Basic|Token|Digest|ApiKey)\s+(.+)$", re.IGNORECASE)
 
 _PATTERNS: list[tuple[re.Pattern[str], str]] = [
-    #JWT: three base64url segments, first one starts with eyJ ('{"').
+    # JWT: three base64url segments, first one starts with eyJ ('{"').
     (re.compile(r"eyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]*"), MASK),
-    #Provider prefixes: GitHub, Slack, Google, AWS, Stripe, OpenAI/Anthropic-style.
+    # Provider prefixes: GitHub, Slack, Google, AWS, Stripe, OpenAI/Anthropic-style.
     (re.compile(r"\b(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})"), MASK),
     (re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}"), MASK),
     (re.compile(r"\bAIza[0-9A-Za-z_-]{35}"), MASK),
     (re.compile(r"\b(AKIA|ASIA)[0-9A-Z]{16}\b"), MASK),
     (re.compile(r"\b(sk|rk|pk)_(live|test)_[A-Za-z0-9]{10,}"), MASK),
     (re.compile(r"\bsk-[A-Za-z0-9_-]{16,}"), MASK),
-    #A credential header written out as text, e.g. in a curl -H argument or a log line.
+    # A credential header written out as text, e.g. in a curl -H argument or a log line.
     (
         re.compile(
             r"((?:proxy-)?authorization|x-api-key|api-key|apikey|x-auth-token|x-access-token|"
@@ -56,14 +56,14 @@ _PATTERNS: list[tuple[re.Pattern[str], str]] = [
         ),
         rf"\1\2\3{MASK}",
     ),
-    #"Bearer <value>" / "Basic <value>" elsewhere in free text. Case-sensitive and
-    #8+ characters, so prose like "the bearer token" is left alone.
+    # "Bearer <value>" / "Basic <value>" elsewhere in free text. Case-sensitive and
+    # 8+ characters, so prose like "the bearer token" is left alone.
     (re.compile(r"\b(Bearer|Basic)\s+(?!\[REDACTED\])[A-Za-z0-9._~+/=-]{8,}"), rf"\1 {MASK}"),
-    #Password in a URL: scheme://user:password@host
+    # Password in a URL: scheme://user:password@host
     (re.compile(r"([a-z][a-z0-9+.-]*://[^/\s:@]+):[^/\s@]+@", re.IGNORECASE), rf"\1:{MASK}@"),
-    #curl -u user:password / --user user:password
+    # curl -u user:password / --user user:password
     (re.compile(r"(\s(?:-u|--user)\s+['\"]?[^\s:'\"]+):[^\s'\"]+"), rf"\1:{MASK}"),
-    #key=value in query strings, form bodies and Cookie headers.
+    # key=value in query strings, form bodies and Cookie headers.
     (
         re.compile(
             r"([?&;\s]|^)([A-Za-z0-9_.-]*(?:pass(?:word|wd)?|secret|token|api[-_]?key|apikey|"
@@ -72,7 +72,7 @@ _PATTERNS: list[tuple[re.Pattern[str], str]] = [
         ),
         rf"\1\2={MASK}",
     ),
-    #"key": "value" in JSON text that we could not parse as JSON.
+    # "key": "value" in JSON text that we could not parse as JSON.
     (
         re.compile(
             r'("[A-Za-z0-9_.-]*(?:pass(?:word|wd)?|secret|token|api[-_]?key|apikey|'
@@ -129,7 +129,7 @@ class Redactor:
             value = pattern.sub(replacement, value)
         return value
 
-    #structured data 
+    # structured data
 
     def header_value(self, name: str, value: str) -> str:
         if name.lower() in SENSITIVE_HEADERS:

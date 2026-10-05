@@ -9,6 +9,7 @@ app = FastAPI(title="APIdoc mock API")
 
 GOOD_TOKEN = "good-token"
 
+
 def _bearer_error(error: str | None, description: str | None = None) -> JSONResponse:
     challenge = "Bearer"
     if error:
