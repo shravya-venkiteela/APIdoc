@@ -152,3 +152,16 @@ def test_bad_curl_is_a_clear_error():
 def test_convert_to_httpx():
     r = apidoc("convert", "curl -X POST --json '{\"a\": 1}' https://api.test/x", "--to", "httpx")
     assert "httpx.request(" in r.stdout and "'POST'" in r.stdout
+
+
+def test_llm_always_without_key_says_so(live_server):
+    r = apidoc("diagnose", f"curl {live_server}/v1/limited", "--llm", "always")
+    assert r.exit_code == 0, r.output
+    assert "LLM was not used" in r.stderr
+    assert "no Gemini key" in r.stderr
+
+
+def test_llm_auto_falls_back_quietly(live_server):
+    r = apidoc("diagnose", f"curl {live_server}/v1/limited", "--llm", "auto")
+    assert r.exit_code == 0, r.output
+    assert "LLM was not used" not in r.stderr

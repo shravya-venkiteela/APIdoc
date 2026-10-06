@@ -43,10 +43,12 @@ class GeminiProvider:
         max_output_tokens: int = 2048,
         timeout: float = 60.0,
         transport: httpx.BaseTransport | None = None,
+        key_source: str = "GEMINI_API_KEY",
     ) -> None:
         if not api_key:
-            raise LLMError("no Gemini API key: set GEMINI_API_KEY or use --no-llm")
+            raise LLMError("no Gemini API key: set GEMINI_API_KEY or use --llm never")
         self.api_key = api_key
+        self.key_source = key_source  # where the key came from, for error messages
         self.model = model or os.environ.get("APIDOC_GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
         self.thinking_level = thinking_level or os.environ.get("APIDOC_GEMINI_THINKING")
         self.max_output_tokens = max_output_tokens
@@ -95,7 +97,7 @@ class GeminiProvider:
         if response.status_code in (400, 401, 403):
             raise LLMError(
                 f"Gemini rejected the request ({response.status_code}): "
-                f"{_error_message(response)}. Check GEMINI_API_KEY."
+                f"{_error_message(response).rstrip('.')}. Check the key from {self.key_source}."
             )
         if response.status_code == 404:
             raise LLMError(

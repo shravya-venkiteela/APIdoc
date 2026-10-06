@@ -1,5 +1,3 @@
-"""Profiles and the keyring, plus the auth/key commands that use them."""
-
 import re
 
 import httpx
@@ -115,7 +113,9 @@ def test_logout(live_server, fake_browser, memory_keyring):
 def test_gemini_key_from_keyring_is_used_and_redacted(live_server):
     apidoc("key", "set", "gemini", input="AIza-keyring-stored-key-0000000000\n")
     assert profiles.get_secret("gemini", "api_key") == "AIza-keyring-stored-key-0000000000"
-    assert cli._gemini_key() == "AIza-keyring-stored-key-0000000000"
+    key, source = cli._gemini_key()
+    assert key == "AIza-keyring-stored-key-0000000000"
+    assert "keyring" in source
     r = apidoc("diagnose", f"curl {live_server}/v1/limited", "--llm", "never", "-vvv")
     assert "AIza-keyring" not in r.stdout + r.stderr
     apidoc("key", "rm", "gemini")
@@ -127,3 +127,37 @@ def test_profiles_command_lists_without_secrets(live_server, fake_browser):
     out = apidoc("profiles").output
     assert re.search(r"^mock\s+mock", out, re.M)
     assert profiles.get_secret("mock", "access_token") not in out
+
+
+def test_env_key_wins_and_says_so(monkeypatch):
+    profiles.set_secret("gemini", "api_key", "AIza-keyring-stored-key-0000000000")
+    monkeypatch.setenv("GEMINI_API_KEY", "AIza-env-key-000000000000000000000")
+    key, source = cli._gemini_key()
+    assert key == "AIza-env-key-000000000000000000000"
+    assert "GEMINI_API_KEY" in source
+
+
+@pytest.mark.parametrize("bad", ["\x16", "AIza key-with-space", "AIza\x00abc"])
+def test_key_set_rejects_a_bad_paste(bad):
+    r = apidoc("key", "set", "gemini", input=f"{bad}\n")
+    assert r.exit_code != 0
+    assert profiles.get_secret("gemini", "api_key") is None
+
+
+def test_redactor_gets_the_key_not_a_tuple(live_server, monkeypatch):
+    """Regression: _gemini_key() returns (key, source); the redactor needs the key.
+    Redactor.add silently ignores anything shorter than 8 characters, and a
+    2-tuple has length 2, so passing the tuple would disable masking quietly."""
+    from apidoc.redact import Redactor
+
+    seen = []
+    original = Redactor.add
+
+    def spy(self, secret):
+        seen.append(secret)
+        return original(self, secret)
+
+    monkeypatch.setattr(Redactor, "add", spy)
+    monkeypatch.setenv("GEMINI_API_KEY", "AIza-env-key-000000000000000000000")
+    apidoc("diagnose", f"curl {live_server}/v1/limited", "--llm", "never")
+    assert "AIza-env-key-000000000000000000000" in seen

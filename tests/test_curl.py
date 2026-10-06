@@ -203,3 +203,16 @@ def test_multiline_export_keeps_flags_with_their_values():
     lines = to_curl(req, follow_redirects=True).splitlines()
     assert lines[1].strip() == "-H 'A: 1' \\"
     assert lines[2].strip() == "-H 'B: 2' \\"
+
+
+def test_backslash_newline_inside_single_quotes_is_body_text():
+    """Found by Hypothesis: a continuation is only a continuation outside quotes."""
+    p = parse_curl("curl https://api.test/x -d 'a\\\nb'")
+    assert p.request.body == "a\\\nb"
+
+
+def test_continuations_still_join_outside_quotes():
+    p = parse_curl("curl https://api.test/x \\\n  -H 'A: b' ^\r\n  -H 'C: d' `\n  -d x")
+    assert p.request.header("A") == "b"
+    assert p.request.header("C") == "d"
+    assert p.request.body == "x"

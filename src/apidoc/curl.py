@@ -46,9 +46,30 @@ _DATA_FLAGS = {"-d", "--data", "--data-raw", "--data-binary", "--data-ascii"}
 
 
 def _normalise(command: str) -> str:
-    """Join line continuations from bash (\\), cmd.exe (^) and PowerShell (`)."""
-    command = re.sub(r"[\\^`]\r?\n", " ", command)
-    return command.strip()
+    """Join line continuations from bash (\\), cmd.exe (^) and PowerShell (`).
+
+    Only outside quotes: inside '...' a backslash-newline is literal body text,
+    as in bash. (Inside "..." bash removes it, so we do too.)
+    """
+    out: list[str] = []
+    quote_char = ""
+    i = 0
+    while i < len(command):
+        ch = command[i]
+        nl = re.match(r"\r?\n", command[i + 1 :]) if ch in "\\^`" else None
+        if nl and quote_char != "'" and not (quote_char == '"' and ch != "\\"):
+            out.append("" if quote_char else " ")
+            i += 1 + len(nl.group())
+            continue
+        if ch == "\\" and quote_char != "'" and i + 1 < len(command):
+            out.append(command[i : i + 2])  # an escaped character is never a quote
+            i += 2
+            continue
+        if ch in "'\"" and quote_char in ("", ch):
+            quote_char = "" if quote_char else ch
+        out.append(ch)
+        i += 1
+    return "".join(out).strip()
 
 
 def parse_curl(command: str) -> ParsedCurl:

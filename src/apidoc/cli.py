@@ -45,15 +45,19 @@ def _read_command(command: str | None, from_file: Path | None) -> str:
     return command
 
 
-def _gemini_key() -> str | None:
-    return os.environ.get("GEMINI_API_KEY") or profiles.get_secret("gemini", "api_key")
+def _gemini_key() -> tuple[str | None, str]:
+    """(key, where it came from). The environment variable wins over the keyring."""
+    if key := os.environ.get("GEMINI_API_KEY"):
+        return key, "the GEMINI_API_KEY environment variable"
+    return profiles.get_secret("gemini", "api_key"), "the keyring (`apidoc key set gemini`)"
 
 
 def _provider(mode: str):
     if mode == "never":
         return None, "LLM disabled (--llm never)"
     try:
-        return GeminiProvider(_gemini_key() or ""), ""
+        key, source = _gemini_key()
+        return GeminiProvider(key or "", key_source=source), ""
     except LLMError:
         return None, "no Gemini key (GEMINI_API_KEY or `apidoc key set gemini`): rules only"
 
@@ -182,7 +186,7 @@ def diagnose_cmd(
             raise _fail(f"could not parse the curl command: {exc}") from exc
         redactor = parsed.redactor()
 
-    redactor.add(_gemini_key())  # never log our own key either
+    redactor.add(_gemini_key()[0])  # never log our own key either
     if profile is not None:
         try:
             profiles.load(profile)
@@ -215,6 +219,13 @@ def diagnose_cmd(
     provider, note = _provider(llm)
     d, outcome = diagnose(Context(parsed, trace), redactor, provider, mode=llm)
     log.info("diagnosis: %s (%.2f, %s)", d.category.value, d.confidence, d.source)
+    if llm == "always" and not outcome.used:
+        # The user asked for the LLM explicitly; falling back silently would hide it.
+        typer.secho(
+            f"Note: --llm always, but the LLM was not used: {note or outcome.reason}",
+            fg="yellow",
+            err=True,
+        )
 
     if export is not None and d.fixed_request is not None:
         # The display copy is redacted; the exported file must work, so it keeps
@@ -395,9 +406,13 @@ def key_set(
     name: Annotated[str, typer.Argument(help="'gemini' for the LLM key, or a profile name.")],
 ) -> None:
     """Store an API key (read from a hidden prompt, never from the command line)."""
-    value = typer.prompt(f"API key for {name}", hide_input=True)
+    value = typer.prompt(f"API key for {name}", hide_input=True).strip()
+    # A hidden prompt shows nothing, so a bad paste (e.g. Ctrl+V arriving as a
+    # control character) would otherwise be stored silently.
+    if not value.isprintable() or any(c.isspace() for c in value):
+        raise _fail("the key contains control characters or spaces: paste it again")
     try:
-        profiles.set_secret(name, "api_key", value.strip())
+        profiles.set_secret(name, "api_key", value)
     except profiles.ProfileError as exc:
         raise _fail(str(exc)) from exc
     typer.secho(f"Stored the {name} key in {profiles.backend_name()}.", fg="green")
