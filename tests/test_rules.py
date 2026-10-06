@@ -206,3 +206,16 @@ def test_patch_apply_replaces_header_case_insensitively():
     req = Request(url="http://x", headers=[("authorization", "old"), ("A", "1")])
     out = Patch(set_headers=[("Authorization", "new")]).apply(req)
     assert out.headers == [("A", "1"), ("Authorization", "new")]
+
+
+@pytest.mark.parametrize(
+    ("ahead_s", "flagged"),
+    [(20, False), (210, True)],  # 20 s is inside the 30 s leeway; 3.5 min is not
+)
+def test_not_yet_valid_respects_clock_leeway(ahead_s, flagged):
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    token = tokens.mint(now=(now + timedelta(seconds=ahead_s)).timestamp())
+    parsed = parse_curl(f"curl -H 'Authorization: Bearer {token}' https://api.test/v1/me")
+    hop = Hop(request=parsed.request, status=401, reason="Unauthorized")
+    d = diagnose_with_rules(Context(parsed, Trace(hops=[hop]), now=now))
+    assert (d.category == Category.AUTH_NOT_YET_VALID) is flagged

@@ -1,53 +1,37 @@
-"""Evaluate APIdoc: rules only vs LLM vs the shipped "auto" pipeline.
-
-    python evals/run_eval.py                    #rules only, no API key needed
-    python evals/run_eval.py --llm record       #call Gemini once per case, save responses
-    python evals/run_eval.py --llm replay       #re-score from saved responses, zero API calls
-
-A case is "diagnosed" only if the category is right AND the explanation names
-the actual cause (one of the case's `mentions` keywords). Category alone is
-too easy: "bad_parameter" for a vague 400 is correct but tells the user
-nothing they did not already know.
-"""
-
 from __future__ import annotations
 
 import argparse
 import json
 import re
 import sys
-import threading
 import time
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
 from pathlib import Path
-
-import uvicorn
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT / "src"), str(ROOT)]
 
 from apidoc.curl import ParsedCurl, parse_curl
 from apidoc.diagnose import STRONG_RULE, LLMOutcome, diagnose
-from apidoc.diagnosis import Diagnosis
 from apidoc.llm import CachedProvider, GeminiProvider, LLMError
 from apidoc.rules import Context
 from apidoc.runner import run
-from mock_server import tokens
-from mock_server.app import app
+from mock_server import serve, tokens
 
 HERE = Path(__file__).resolve().parent
-JAN_2026 = datetime(2026, 1, 1, tzinfo=UTC).timestamp()
-JAN_2099 = datetime(2099, 1, 1, tzinfo=UTC).timestamp()
+EXPIRED_AGO_S = 3600  # e03: expired one hour ago
+SKEW_AHEAD_S = 210  # e04: issuer clock 3.5 min fast; 30 s leeway, so clearly rejected
 
 
 def placeholders(base: str) -> dict[str, str]:
-    read_jwt = tokens.mint(scope="read", ttl=100 * 365 * 86400, now=JAN_2026)
+    now = time.time()
+    read_jwt = tokens.mint(scope="read", ttl=3600, now=now)
     return {
         "base": base,
         "closed": "http://127.0.0.1:9",  # discard port: nothing listens there
-        "expired_jwt": tokens.mint(ttl=-3600, now=JAN_2026),
-        "future_jwt": tokens.mint(now=JAN_2099),
+        "expired_jwt": tokens.mint(ttl=-EXPIRED_AGO_S, now=now),
+        # Issued by a server whose clock runs ahead: iat and nbf are in our future.
+        "future_jwt": tokens.mint(now=now + SKEW_AHEAD_S),
         "read_jwt": read_jwt,
         "tampered_jwt": read_jwt.rsplit(".", 1)[0] + "." + "A" * 43,
     }
@@ -73,14 +57,11 @@ def normalize(prompt: str) -> str:
     return prompt
 
 
-def start_mock(port: int) -> uvicorn.Server:
-    server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning"))
-    threading.Thread(target=server.run, daemon=True).start()
-    deadline = time.time() + 10
-    while not server.started:
-        if time.time() > deadline:
-            raise SystemExit(f"mock server did not start on port {port} (in use?)")
-        time.sleep(0.05)
+def start_mock(port: int):
+    try:
+        server, _thread, _port = serve.start(port)
+    except (OSError, RuntimeError) as exc:
+        raise SystemExit(f"mock server could not start on port {port} (in use?): {exc}") from exc
     return server
 
 
@@ -136,10 +117,10 @@ def fix_works(d: Diagnosis, follow: bool) -> bool | None:
 
 
 def evaluate(cases: list[dict], base: str, provider) -> list[CaseResult]:
-    values = placeholders(base)
     results = []
     for case in cases:
-        parsed = parse_curl(fill(case["curl"], values))
+        # Mint per case: with a throttled live LLM, later cases run minutes later.
+        parsed = parse_curl(fill(case["curl"], placeholders(base)))
         trace = run(parsed, allow_unsafe=case.get("allow_unsafe", False))
         ctx = Context(parsed, trace)
         redactor = parsed.redactor()
@@ -160,12 +141,19 @@ def evaluate(cases: list[dict], base: str, provider) -> list[CaseResult]:
 
         if provider is not None:
             llm_d, outcome = diagnose(ctx, redactor, provider, mode="always")
-            result.llm = score(llm_d, expect)
             result.llm_note = outcome.reason
-            result.llm_error = outcome.reason.startswith("LLM unavailable")
+            result.llm_error = outcome.answer is None or "discarded" in outcome.reason
             result.dropped_evidence = len(outcome.dropped_evidence)
-            # "auto" = what users get: the LLM is only consulted when rules are unsure.
-            if rules_d.confidence < STRONG_RULE:
+            if result.llm_error:
+                # No usable LLM answer (call failed, invalid JSON, or ungrounded).
+                # diagnose() fell back to the rules; crediting that to the LLM
+                # column would inflate it, so it counts as not diagnosed.
+                result.llm = Score("error", False, False, 0.0, "error", outcome.reason)
+            else:
+                result.llm = score(llm_d, expect)
+            # "auto" = what users get: the LLM is only consulted when rules are unsure,
+            # and when it fails they get the rules' answer.
+            if rules_d.confidence < STRONG_RULE and not result.llm_error:
                 result.auto = result.llm
             _print_progress(result, outcome)
         else:
@@ -189,8 +177,9 @@ def _print_progress(r: CaseResult, outcome: LLMOutcome | None) -> None:
     mark = "ok " if r.rules.diagnosed else "-- "
     line = f"  {r.id} rules:{mark}"
     if r.llm is not None:
-        line += f" llm:{'ok ' if r.llm.diagnosed else ('ERR' if r.llm_error else '-- ')}"
-    print(f"{line} {r.title}", flush=True)
+        line += f" llm:{'ERR' if r.llm_error else ('ok ' if r.llm.diagnosed else '-- ')}"
+    reason = f"  [{r.llm_note}]" if r.llm_error else ""
+    print(f"{line} {r.title}{reason}", flush=True)
 
 
 def pct(n: int, d: int) -> str:
@@ -203,7 +192,6 @@ def report(results: list[CaseResult], model: str | None, mode: str) -> str:
     lines = [
         "# APIdoc eval results",
         "",
-        f"- Run: {datetime.now(UTC):%Y-%m-%d %H:%M UTC}",
         f"- Cases: {len(results)} ({', '.join(f'{g}: {sum(r.audience == g for r in results)}' for g in groups)})",  # noqa: E501
         f"- LLM: {model + f' ({mode})' if has_llm else 'not run (rules only)'}",
         "",
@@ -235,8 +223,9 @@ def report(results: list[CaseResult], model: str | None, mode: str) -> str:
         discarded = sum("discarded" in r.llm_note for r in results)
         kept_rule = sum("kept the rule" in r.llm_note for r in results)
         lines += [
-            f"LLM calls that failed (rate limit, network): {errors}",
-            f"LLM answers discarded for ungrounded evidence: {discarded}",
+            f"LLM gave no usable answer (failed call, invalid JSON, ungrounded): {errors}"
+            " (counted as not diagnosed in the LLM column)",
+            f"  of which discarded for ungrounded evidence: {discarded}",
             f"LLM disagreements overruled by a proven rule: {kept_rule}",
             f"Evidence items dropped by the grounding check: "
             f"{sum(r.dropped_evidence for r in results)}",
@@ -297,7 +286,14 @@ def main(argv: list[str] | None = None) -> int:
     model = None
     if args.llm != "none":
         try:
-            inner = GeminiProvider.from_env() if args.llm != "replay" else _ReplayOnly()
+            if args.llm == "replay":
+                inner = _ReplayOnly()
+            else:
+                # Same lookup as the CLI: GEMINI_API_KEY, else the keyring.
+                from apidoc.cli import _gemini_key
+
+                key, source = _gemini_key()
+                inner = GeminiProvider(key or "", key_source=source)
         except LLMError as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 2
@@ -318,9 +314,10 @@ def main(argv: list[str] | None = None) -> int:
         server.should_exit = True
 
     md = report(results, model, args.llm)
-    (HERE / "results.md").write_text(md, encoding="utf-8")
+    # No run timestamp and LF endings: an unchanged result leaves git clean.
+    (HERE / "results.md").write_text(md, encoding="utf-8", newline="\n")
     (HERE / "results.json").write_text(
-        json.dumps([asdict(r) for r in results], indent=2), encoding="utf-8"
+        json.dumps([asdict(r) for r in results], indent=2) + "\n", encoding="utf-8", newline="\n"
     )
     print()
     print(md)

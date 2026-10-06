@@ -1,6 +1,5 @@
 # APIdoc eval results
 
-- Run: 2026-10-05 22:40 UTC
 - Cases: 28 (beginner: 12, experienced: 11, hard: 5)
 - LLM: gemini-3.5-flash-lite (replay)
 
@@ -18,8 +17,8 @@ confidence is below 0.85.
 | **all** | 23/28 (82%) | 28/28 (100%) | 28/28 (100%) |
 
 Machine-applied fixes that made the request succeed: 7/7 (100%)
-LLM calls that failed (rate limit, network): 0
-LLM answers discarded for ungrounded evidence: 0
+LLM gave no usable answer (failed call, invalid JSON, ungrounded): 0 (counted as not diagnosed in the LLM column)
+  of which discarded for ungrounded evidence: 0
 LLM disagreements overruled by a proven rule: 1
 Evidence items dropped by the grounding check: 0
 

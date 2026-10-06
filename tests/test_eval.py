@@ -109,3 +109,19 @@ def test_replay_is_deterministic_across_runs(live_server, tmp_path):
     results = run_eval.evaluate(cases, live_server, replayer)
     assert replayer.cache_hits == len(cases)
     assert not any(r.llm_error for r in results)
+
+
+def test_failed_llm_call_is_not_credited_to_the_llm(live_server, tmp_path):
+    """A failed call makes diagnose() fall back to the rules. That fallback must
+    not be scored as an LLM success, or the LLM column is inflated."""
+    from apidoc.llm import LLMError
+
+    def down(system, prompt):
+        raise LLMError("simulated outage")
+
+    provider = CachedProvider(FakeProvider(down), tmp_path, mode="live")
+    results = {r.id: r for r in run_eval.evaluate(CASES, live_server, provider)}
+    for r in results.values():
+        assert r.llm_error
+        assert not r.llm.diagnosed
+        assert r.auto == r.rules  # users get the rules' answer when the LLM is down

@@ -500,7 +500,7 @@
       "cause_named": true,
       "confidence": 0.95,
       "source": "rules",
-      "summary": "Your token expired 277 days ago."
+      "summary": "Your token expired 1 hour ago."
     },
     "auto": {
       "category": "auth_expired",
@@ -508,7 +508,7 @@
       "cause_named": true,
       "confidence": 0.95,
       "source": "rules",
-      "summary": "Your token expired 277 days ago."
+      "summary": "Your token expired 1 hour ago."
     },
     "llm": {
       "category": "auth_expired",
@@ -516,7 +516,7 @@
       "cause_named": true,
       "confidence": 0.95,
       "source": "rules+llm",
-      "summary": "The provided authentication token has expired."
+      "summary": "The authentication token provided in the request has expired."
     },
     "llm_note": "LLM agreed with the rules and rewrote the explanation",
     "llm_error": false,
@@ -535,7 +535,7 @@
       "cause_named": true,
       "confidence": 0.85,
       "source": "rules",
-      "summary": "Your token is not valid for another 26385 days."
+      "summary": "Your token is not valid for another 3 minutes."
     },
     "auto": {
       "category": "auth_not_yet_valid",
@@ -543,7 +543,7 @@
       "cause_named": true,
       "confidence": 0.85,
       "source": "rules",
-      "summary": "Your token is not valid for another 26385 days."
+      "summary": "Your token is not valid for another 3 minutes."
     },
     "llm": {
       "category": "auth_not_yet_valid",
@@ -551,7 +551,7 @@
       "cause_named": true,
       "confidence": 0.85,
       "source": "rules+llm",
-      "summary": "The provided authentication token's not-before (nbf) or issued-at (iat) time is set in the future."
+      "summary": "Your API token is not valid yet because its not-before time is in the future."
     },
     "llm_note": "LLM agreed with the rules and rewrote the explanation",
     "llm_error": false,

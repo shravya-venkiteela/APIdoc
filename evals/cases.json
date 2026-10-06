@@ -1,7 +1,8 @@
 {
   "notes": [
     "Placeholders: {base} = mock server URL, {closed} = an address nothing listens on,",
-    "{expired_jwt}, {future_jwt}, {read_jwt}, {tampered_jwt} = deterministic test tokens.",
+    "{expired_jwt} expired 1 h ago, {future_jwt} issued by a clock 3.5 min fast, {read_jwt},",
+    "{tampered_jwt}: minted per case against the real clock, so every run is the same scenario.",
     "expect.category = the right answer. expect.mentions = words a correct explanation",
     "names (any one of them, case-insensitive, in summary or fix). 'hard' cases are ones",
     "no rule was written for: they measure what the LLM adds."
