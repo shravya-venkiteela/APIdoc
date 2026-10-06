@@ -79,3 +79,33 @@ def test_normalize_removes_volatile_values():
     a = "date: Mon, 05 Oct 2026 10:00:00 GMT; expired 5 hours ago at 2026-10-05 05:00:00 UTC"
     b = "date: Tue, 06 Oct 2026 11:30:00 GMT; expired 6 hours ago at 2026-10-06 05:30:00 UTC"
     assert run_eval.normalize(a) == run_eval.normalize(b)
+
+
+def test_replay_is_deterministic_across_runs(live_server, tmp_path):
+    """Recordings must keep matching even though every run mints new random
+    tokens (jti) and the server sends a new Date header."""
+    from apidoc.llm import LLMError
+
+    cases = [
+        {**c, "expect": c["expect"]}
+        for c in json.loads((run_eval.HERE / "cases.json").read_text(encoding="utf-8"))["cases"]
+        if c["id"] in ("e01", "e03", "e04", "e06", "e07", "h05")
+    ]
+    answer = json.dumps(
+        {"category": "unknown", "summary": "x", "evidence": ["HTTP/1.1"], "fix": "y",
+         "confidence": 0.1}
+    )  # fmt: skip
+
+    def live_call(system, prompt):
+        raise LLMError("live call during replay")
+
+    recorder = CachedProvider(
+        FakeProvider(lambda s, p: answer), tmp_path, mode="record", normalize=run_eval.normalize
+    )
+    run_eval.evaluate(cases, live_server, recorder)
+    replayer = CachedProvider(
+        FakeProvider(live_call), tmp_path, mode="replay", normalize=run_eval.normalize
+    )
+    results = run_eval.evaluate(cases, live_server, replayer)
+    assert replayer.cache_hits == len(cases)
+    assert not any(r.llm_error for r in results)

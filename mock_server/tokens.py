@@ -4,6 +4,7 @@ import base64
 import hashlib
 import hmac
 import json
+import secrets
 import time
 
 SECRET = b"apidoc-mock-signing-key-not-secret"
@@ -27,7 +28,14 @@ def mint(
     """ttl < 0 gives an already-expired token; nbf_offset > 0 one that is not valid yet."""
     now = int(now if now is not None else time.time())
     header = {"alg": "HS256", "typ": "JWT"}
-    claims = {"sub": sub, "scope": scope, "iat": now, "nbf": now + nbf_offset, "exp": now + ttl}
+    claims = {
+        "sub": sub,
+        "scope": scope,
+        "iat": now,
+        "nbf": now + nbf_offset,
+        "exp": now + ttl,
+        "jti": secrets.token_hex(8),  # unique per token, as real servers do
+    }
     signing_input = f"{_b64(json.dumps(header).encode())}.{_b64(json.dumps(claims).encode())}"
     sig = hmac.new(SECRET, signing_input.encode(), hashlib.sha256).digest()
     return f"{signing_input}.{_b64(sig)}"
