@@ -196,3 +196,10 @@ def test_data_from_file(tmp_path):
 def test_missing_data_file_is_a_clear_error():
     with pytest.raises(CurlParseError, match="cannot read data file"):
         parse_curl("curl -d @does-not-exist.json https://api.test/x")
+
+
+def test_multiline_export_keeps_flags_with_their_values():
+    req = Request(url="https://api.test/x", headers=[("A", "1"), ("B", "2")])
+    lines = to_curl(req, follow_redirects=True).splitlines()
+    assert lines[1].strip() == "-H 'A: 1' \\"
+    assert lines[2].strip() == "-H 'B: 2' \\"

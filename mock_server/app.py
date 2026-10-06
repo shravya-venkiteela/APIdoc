@@ -221,3 +221,12 @@ async def login_page():
         "<body><form method='post'><input name='user'><input name='password' type='password'>"
         "</form></body></html>"
     )
+
+
+@app.get("/v1/session")
+async def session() -> JSONResponse:
+    """Sets a session cookie: a secret APIdoc has never seen, chosen by the server.
+    Used to check that -vvv output and logs mask it anyway."""
+    response = JSONResponse({"ok": True})
+    response.set_cookie("sid", "srv-issued-cookie-9f8e7d6c5b4a", httponly=True)
+    return response

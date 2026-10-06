@@ -21,23 +21,24 @@ def to_curl(
     shell: Shell = "posix",
 ) -> str:
     quote = shlex.quote if shell == "posix" else _ps_quote
-    parts = ["curl.exe" if shell == "powershell" else "curl"]
+    # Each item is one flag with its value, so a multi-line command keeps
+    # "-H 'Name: value'" together on one line.
+    items = ["curl.exe" if shell == "powershell" else "curl"]
 
     implied = "POST" if req.body is not None else "GET"
     if req.method != implied:
-        parts += ["-X", req.method]
-    for name, value in req.headers:
-        parts += ["-H", quote(f"{name}: {value}")]
+        items.append(f"-X {req.method}")
+    items += [f"-H {quote(f'{name}: {value}')}" for name, value in req.headers]
     if req.body is not None:
-        parts += ["--data-raw", quote(req.body)]
+        items.append(f"--data-raw {quote(req.body)}")
     if follow_redirects:
-        parts.append("-L")
+        items.append("-L")
     if not verify_tls:
-        parts.append("-k")
-    parts.append(quote(req.url))
+        items.append("-k")
+    items.append(quote(req.url))
 
     joiner = " \\\n  " if shell == "posix" else " `\n  "
-    return joiner.join(parts) if len(parts) > 4 else " ".join(parts)
+    return joiner.join(items) if len(items) > 3 else " ".join(items)
 
 
 def to_httpx(req: Request, *, follow_redirects: bool = False, verify_tls: bool = True) -> str:
