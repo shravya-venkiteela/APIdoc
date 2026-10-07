@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"error_in_success\",\n  \"summary\": \"The HTTP response is 200 OK, but the GraphQL body contains a field validation error due to a typo in the query.\",\n  \"evidence\": [\n    \"HTTP/1.1 200 OK\",\n    \"{\\\"data\\\": null, \\\"errors\\\": [{\"message\": \"Cannot query field \\\"emial\\\" on type \\\"User\\\". Did you mean \\\"email\\\"?\"}]}\"\n  ],\n  \"fix\": \"Correct the typo in the GraphQL query from \\\"emial\\\" to \\\"email\\\".\",\n  \"confidence\": 0.95\n}"
+}

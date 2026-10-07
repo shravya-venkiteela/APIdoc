@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"auth_scheme\",\n  \"summary\": \"The request used HTTP Basic authentication, but the API requires a Bearer token instead.\",\n  \"evidence\": [\n    \"Authorization: Basic [REDACTED]\",\n    \"HTTP/1.1 401 Unauthorized\",\n    \"www-authenticate: Bearer realm=\\\"api\\\"\"\n  ],\n  \"fix\": \"Change the Authorization header scheme from Basic to Bearer and provide a valid token.\",\n  \"confidence\": 0.95\n}"
+}

@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"auth_missing\",\n  \"summary\": \"The API requires an idempotency key header which was not provided in the request.\",\n  \"evidence\": [\n    \"HTTP/1.1 428 Precondition Required\",\n    \"{\\\"error\\\": \\\"missing_idempotency_key\\\"}\"\n  ],\n  \"fix\": \"Add the required Idempotency-Key header to your POST request.\",\n  \"confidence\": 0.95\n}"
+}

@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"rate_limited\",\n  \"summary\": \"You have exceeded the allowed number of requests and hit the API rate limit.\",\n  \"evidence\": [\n    \"HTTP/1.1 403 Forbidden\",\n    \"{\\\"message\\\": \\\"API rate limit exceeded for user.\\\"}\"\n  ],\n  \"fix\": \"Wait until the rate limit resets before making additional API requests.\",\n  \"confidence\": 1.0\n}"
+}

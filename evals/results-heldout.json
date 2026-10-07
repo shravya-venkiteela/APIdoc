@@ -13,15 +13,22 @@
       "summary": "The server rejected the request (400) without saying which part is wrong."
     },
     "auto": {
-      "category": "bad_parameter",
-      "category_ok": true,
-      "cause_named": false,
-      "confidence": 0.3,
-      "source": "rules",
-      "summary": "The server rejected the request (400) without saying which part is wrong."
+      "category": "validation",
+      "category_ok": false,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "The server rejected the query parameter value because it is invalid or not allowed."
     },
-    "llm": null,
-    "llm_note": "",
+    "llm": {
+      "category": "validation",
+      "category_ok": false,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "The server rejected the query parameter value because it is invalid or not allowed."
+    },
+    "llm_note": "rules were unsure; used the LLM's grounded diagnosis",
     "llm_error": false,
     "dropped_evidence": 0,
     "fix_works": null,
@@ -48,9 +55,16 @@
       "source": "rules",
       "summary": "The status says 200 OK, but the body reports an error."
     },
-    "llm": null,
-    "llm_note": "",
-    "llm_error": false,
+    "llm": {
+      "category": "error",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.0,
+      "source": "error",
+      "summary": "LLM returned invalid JSON twice: Expecting ',' delimiter: line 6 column 38 (char 240)"
+    },
+    "llm_note": "LLM returned invalid JSON twice: Expecting ',' delimiter: line 6 column 38 (char 240)",
+    "llm_error": true,
     "dropped_evidence": 0,
     "fix_works": null,
     "notes": []
@@ -69,15 +83,22 @@
       "summary": "The request failed (403 Forbidden) and no rule recognised the cause."
     },
     "auto": {
-      "category": "unknown",
-      "category_ok": false,
-      "cause_named": false,
-      "confidence": 0.1,
-      "source": "rules",
-      "summary": "The request failed (403 Forbidden) and no rule recognised the cause."
+      "category": "auth_invalid",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "The API key provided in the request has been revoked."
     },
-    "llm": null,
-    "llm_note": "",
+    "llm": {
+      "category": "auth_invalid",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "The API key provided in the request has been revoked."
+    },
+    "llm_note": "rules were unsure; used the LLM's grounded diagnosis",
     "llm_error": false,
     "dropped_evidence": 0,
     "fix_works": null,
@@ -100,12 +121,19 @@
       "category": "not_found",
       "category_ok": true,
       "cause_named": false,
-      "confidence": 0.5,
-      "source": "rules",
-      "summary": "The server has nothing at /v1/catalog."
+      "confidence": 0.85,
+      "source": "rules+llm",
+      "summary": "The requested API endpoint does not exist on the server."
     },
-    "llm": null,
-    "llm_note": "",
+    "llm": {
+      "category": "not_found",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.85,
+      "source": "rules+llm",
+      "summary": "The requested API endpoint does not exist on the server."
+    },
+    "llm_note": "LLM agreed with the rules and rewrote the explanation",
     "llm_error": false,
     "dropped_evidence": 0,
     "fix_works": null,
@@ -127,13 +155,20 @@
     "auto": {
       "category": "bad_parameter",
       "category_ok": true,
-      "cause_named": false,
-      "confidence": 0.3,
-      "source": "rules",
-      "summary": "The server rejected the request (400) without saying which part is wrong."
+      "cause_named": true,
+      "confidence": 0.8,
+      "source": "rules+llm",
+      "summary": "The server returned a 400 Bad Request because the request was unsupported or missing a required parameter."
     },
-    "llm": null,
-    "llm_note": "",
+    "llm": {
+      "category": "bad_parameter",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.8,
+      "source": "rules+llm",
+      "summary": "The server returned a 400 Bad Request because the request was unsupported or missing a required parameter."
+    },
+    "llm_note": "LLM agreed with the rules and rewrote the explanation",
     "llm_error": false,
     "dropped_evidence": 0,
     "fix_works": null,
@@ -153,15 +188,22 @@
       "summary": "The request failed (428 Precondition Required) and no rule recognised the cause."
     },
     "auto": {
-      "category": "unknown",
+      "category": "auth_missing",
       "category_ok": false,
-      "cause_named": false,
-      "confidence": 0.1,
-      "source": "rules",
-      "summary": "The request failed (428 Precondition Required) and no rule recognised the cause."
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "The API requires an idempotency key header which was not provided in the request."
     },
-    "llm": null,
-    "llm_note": "",
+    "llm": {
+      "category": "auth_missing",
+      "category_ok": false,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "The API requires an idempotency key header which was not provided in the request."
+    },
+    "llm_note": "rules were unsure; used the LLM's grounded diagnosis",
     "llm_error": false,
     "dropped_evidence": 0,
     "fix_works": null,
@@ -181,15 +223,22 @@
       "summary": "The server rejected the token."
     },
     "auto": {
-      "category": "auth_invalid",
-      "category_ok": false,
-      "cause_named": false,
-      "confidence": 0.55,
-      "source": "rules",
-      "summary": "The server rejected the token."
+      "category": "auth_scheme",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "The request used HTTP Basic [REDACTED], but the API requires a Bearer token instead."
     },
-    "llm": null,
-    "llm_note": "",
+    "llm": {
+      "category": "auth_scheme",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "The request used HTTP Basic [REDACTED], but the API requires a Bearer token instead."
+    },
+    "llm_note": "rules were unsure; used the LLM's grounded diagnosis",
     "llm_error": false,
     "dropped_evidence": 0,
     "fix_works": null,
@@ -209,15 +258,22 @@
       "summary": "The request failed (403 Forbidden) and no rule recognised the cause."
     },
     "auto": {
-      "category": "unknown",
-      "category_ok": false,
-      "cause_named": false,
-      "confidence": 0.1,
-      "source": "rules",
-      "summary": "The request failed (403 Forbidden) and no rule recognised the cause."
+      "category": "auth_expired",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "The presigned URL has expired, resulting in a 403 Forbidden response."
     },
-    "llm": null,
-    "llm_note": "",
+    "llm": {
+      "category": "auth_expired",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "The presigned URL has expired, resulting in a 403 Forbidden response."
+    },
+    "llm_note": "rules were unsure; used the LLM's grounded diagnosis",
     "llm_error": false,
     "dropped_evidence": 0,
     "fix_works": null,
@@ -237,15 +293,22 @@
       "summary": "You are authenticated but not allowed to do this (403 Forbidden)."
     },
     "auto": {
-      "category": "auth_scope",
-      "category_ok": false,
-      "cause_named": false,
-      "confidence": 0.5,
-      "source": "rules",
-      "summary": "You are authenticated but not allowed to do this (403 Forbidden)."
+      "category": "rate_limited",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "You have exceeded the allowed number of requests and hit the API rate limit."
     },
-    "llm": null,
-    "llm_note": "",
+    "llm": {
+      "category": "rate_limited",
+      "category_ok": true,
+      "cause_named": true,
+      "confidence": 0.85,
+      "source": "llm",
+      "summary": "You have exceeded the allowed number of requests and hit the API rate limit."
+    },
+    "llm_note": "rules were unsure; used the LLM's grounded diagnosis",
     "llm_error": false,
     "dropped_evidence": 0,
     "fix_works": null,
@@ -272,8 +335,15 @@
       "source": "rules",
       "summary": "The request had no credentials, so the server refused it."
     },
-    "llm": null,
-    "llm_note": "",
+    "llm": {
+      "category": "auth_missing",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The request had no credentials, so the server refused it."
+    },
+    "llm_note": "LLM said auth_scheme, but rule finding auth_missing is proven (0.85); kept the rule",
     "llm_error": false,
     "dropped_evidence": 0,
     "fix_works": null,

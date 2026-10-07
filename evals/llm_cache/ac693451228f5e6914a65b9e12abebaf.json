@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"auth_expired\",\n  \"summary\": \"The presigned URL has expired, resulting in a 403 Forbidden response.\",\n  \"evidence\": [\n    \"HTTP/1.1 403 Forbidden\",\n    \"{\\\"error\\\": \\\"Request has expired\\\"}\"\n  ],\n  \"fix\": \"Generate a new presigned URL with a later expiration timestamp.\",\n  \"confidence\": 1\n}"
+}

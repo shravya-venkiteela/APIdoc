@@ -1,0 +1,5 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "response": "{\n  \"category\": \"validation\",\n  \"summary\": \"The server rejected the query parameter value because it is invalid or not allowed.\",\n  \"evidence\": [\n    \"GET http://127.0.0.1:8765/v1/orders?status=Shipped\",\n    \"HTTP/1.1 400 Bad Request\",\n    \"{\\\"error\\\": \\\"invalid value\\\"}\"\n  ],\n  \"fix\": \"Change the 'status' query parameter to a valid value accepted by the API (such as 'shipped' in lowercase, depending on API requirements).\",\n  \"confidence\": 0.9\n}"
+}
