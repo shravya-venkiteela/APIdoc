@@ -1,3 +1,12 @@
+"""Run the mock API in a background thread (tests and the eval use this).
+
+It listens on 127.0.0.1 and, when the machine has it, on ::1 too, on the same
+port. Why: /v1/old-me redirects between "127.0.0.1" and "localhost", and on
+Windows "localhost" resolves to ::1 first. With nothing listening on ::1,
+Windows only gives up on that address after about 2 seconds of retries, then
+falls back to 127.0.0.1. Every redirect test paid that delay.
+"""
+
 from __future__ import annotations
 
 import socket

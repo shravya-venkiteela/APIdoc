@@ -1,3 +1,10 @@
+"""Read a JWT's claims without verifying it.
+
+APIdoc never has the signing key and does not need it: it only wants to know
+whether `exp` is in the past or `nbf` in the future. Only time and scope
+claims leave this module; `sub`, emails and the like are never surfaced.
+"""
+
 from __future__ import annotations
 
 import base64

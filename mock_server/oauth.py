@@ -1,3 +1,18 @@
+"""A small OAuth 2.0 authorization server for the mock API.
+
+Supports exactly what APIdoc needs to test against, per RFC 6749 / 7636:
+  - authorization code with PKCE (S256 only; "plain" is refused)
+  - client credentials (secret in the form body or HTTP Basic)
+  - refresh tokens
+
+Deliberate simplifications, because this is a test server:
+  - /oauth/authorize auto-approves: there is no login page or consent screen.
+  - State is kept in memory and lost on restart.
+  - A mock-only `ttl` form field on /oauth/token lets tests mint short-lived
+    or already-expired tokens through the real flow. Real servers do not
+    let clients choose token lifetimes.
+"""
+
 from __future__ import annotations
 
 import base64

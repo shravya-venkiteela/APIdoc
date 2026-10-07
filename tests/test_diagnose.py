@@ -59,6 +59,16 @@ def test_no_secret_reaches_prompt_wherever_it_is(live_server, secret):
     assert secret not in fake.prompts[0][1]
 
 
+def test_status_reason_phrase_is_redacted_too(live_server):
+    """Found by Hypothesis: the secret "Unauthorized" survived in "401 Unauthorized"
+    because the reason phrase was not passed through the redactor. Servers can
+    put any text there, so it must be redacted like everything else."""
+    ctx, redactor = context_for(f"curl -H 'X-Api-Key: Unauthorized' '{live_server}/v1/keyed'")
+    fake = FakeProvider([answer("auth_invalid", ["401"])])
+    diagnose(ctx, redactor, fake, mode="always")
+    assert "Unauthorized" not in fake.prompts[0][1]
+
+
 def test_ground_is_verbatim_but_tolerant_of_case_and_spacing():
     kept, dropped = ground(
         ["HTTP/1.1   400 bad request", "made up fact"], "HTTP/1.1 400 Bad Request"

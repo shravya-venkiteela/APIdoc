@@ -1,3 +1,12 @@
+"""Parse a curl command into a Request, reproducing what curl actually sends.
+
+"What curl actually sends" matters more than it sounds. `curl -d '{"a":1}' URL`
+does not send JSON: it silently switches to POST and adds
+`Content-Type: application/x-www-form-urlencoded`. That hidden header is the
+cause of a whole class of beginner 415/400 errors, so the parser adds it
+exactly as curl would and records that it did (`implicit_headers`).
+"""
+
 from __future__ import annotations
 
 import base64

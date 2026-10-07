@@ -1,3 +1,13 @@
+"""Profiles: non-secret settings in a JSON file, secrets in the OS keyring.
+
+On Windows the keyring is Windows Credential Manager, on macOS the Keychain,
+on Linux the Secret Service (GNOME Keyring / KWallet). Secrets are never
+written to the JSON file; a test reads the file back to prove it.
+
+    profiles.json   {"mock": {"provider": "mock", "base_url": ..., "client_id": ...}}
+    keyring         service "apidoc", user "mock:access_token" -> the token
+"""
+
 from __future__ import annotations
 
 import json

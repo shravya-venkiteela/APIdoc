@@ -1,3 +1,11 @@
+"""What happened on the wire: every request sent and every response received.
+
+A Trace is the evidence the rules and the LLM reason over. It records each
+redirect hop separately, because several failures (auth dropped on a
+cross-host redirect, POST turned into GET) are only visible by comparing
+what was sent on hop 1 with what was sent on hop 2.
+"""
+
 from __future__ import annotations
 
 import json
@@ -37,6 +45,7 @@ class Hop(BaseModel):
         return self.model_copy(
             update={
                 "request": self.request.redacted(r),
+                "reason": r.text(self.reason),  # servers may put any text here
                 "headers": r.headers(self.headers),
                 "body": body,
             }

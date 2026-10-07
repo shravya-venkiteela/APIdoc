@@ -1,3 +1,22 @@
+"""The `apidoc` command.
+
+    apidoc diagnose "curl -H 'Authorization: Bearer ...' https://api.example.com/v1/me"
+    apidoc diagnose -f failing.txt -v
+    apidoc diagnose --trace-file trace.json        # analyse a saved trace, no re-run
+    apidoc convert "curl ..." --to httpx
+    apidoc auth login --profile mock               # OAuth (PKCE), token kept in the OS keyring
+    apidoc diagnose --profile mock --with-token "curl http://127.0.0.1:8000/v1/me"
+    apidoc key set gemini                          # store the Gemini API key in the keyring
+
+Output depth (stdout):
+    default  cause, fix, fixed request          (for beginners)
+    -v       + evidence, other findings, what the LLM did
+    -vv      + every hop with status and timing
+    -vvv     + full headers and bodies of every hop
+Logs go to stderr (--log-json for one JSON object per line).
+Everything printed or logged is redacted.
+"""
+
 from __future__ import annotations
 
 import os
@@ -112,7 +131,7 @@ def _render(
             for f in others:
                 typer.echo(f"  - [{f.confidence:.2f}] {f.summary}")
         _section("LLM:")
-        typer.echo(f"  {outcome.reason or note}")
+        typer.echo(f"  {note or outcome.reason}")
         if outcome.dropped_evidence:
             typer.echo(f"  dropped {len(outcome.dropped_evidence)} ungrounded evidence item(s)")
         if parsed.implicit_headers:
@@ -421,8 +440,6 @@ def auth_logout(profile: Annotated[str, typer.Option()] = "mock") -> None:
     profiles.delete(profile)
     typer.echo(f"Removed profile {profile!r} and its stored secrets.")
 
-
-# ------------------------------------------------------------ keys ----------
 
 key_app = typer.Typer(no_args_is_help=True, help="API keys in the OS keyring.")
 app.add_typer(key_app, name="key")

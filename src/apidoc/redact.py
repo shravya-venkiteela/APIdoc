@@ -1,3 +1,18 @@
+"""Secret redaction.
+
+Every string that leaves APIdoc (log lines, terminal output, saved traces,
+the prompt sent to the LLM) goes through a Redactor first.
+
+Two layers, because neither is enough alone:
+
+1. Known values: secrets APIdoc has seen (from the curl command, a profile or
+   the keyring) are replaced wherever they appear, in any encoding we can
+   predict (raw, URL-encoded, base64).
+2. Patterns: things that look like secrets even if we never saw them before
+   (JWTs, "Bearer ..." values, provider key prefixes, sensitive query params
+   and JSON keys, passwords in URLs).
+"""
+
 from __future__ import annotations
 
 import base64

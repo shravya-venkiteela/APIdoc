@@ -171,3 +171,9 @@ def test_default_verbosity_is_quiet_even_when_nothing_answers():
     r = apidoc("diagnose", "curl -m 5 http://127.0.0.1:9/v1/me", "--llm", "never")
     assert "connection" in r.stdout
     assert r.stderr == ""  # the diagnosis says it; no raw WARNING line on top
+
+
+def test_v_says_why_there_is_no_llm(live_server):
+    r = apidoc("diagnose", f"curl {live_server}/v1/limited", "-v")  # no key anywhere
+    assert "no Gemini key" in r.stdout
+    assert "apidoc key set gemini" in r.stdout

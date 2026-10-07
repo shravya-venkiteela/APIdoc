@@ -1,3 +1,9 @@
+"""Turn a Request back into something runnable: a curl command or httpx code.
+
+The diagnosis produces a *fixed* Request; these exporters are how the user
+gets it back in a form they can paste.
+"""
+
 from __future__ import annotations
 
 import shlex

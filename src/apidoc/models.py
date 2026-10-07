@@ -1,3 +1,5 @@
+"""Core data types shared by every stage of the pipeline."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel, Field

@@ -1,3 +1,17 @@
+"""Evaluate APIdoc: rules only vs LLM vs the shipped "auto" pipeline.
+
+    python evals/run_eval.py                    # rules only, no API key needed
+    python evals/run_eval.py --llm record       # call Gemini once per case, save responses
+    python evals/run_eval.py --llm replay       # re-score from saved responses, zero API calls
+
+A case is "diagnosed" only if the category is right AND the explanation names
+the actual cause (one of the case's `mentions` keywords). Category alone is
+too easy: "bad_parameter" for a vague 400 is correct but tells the user
+nothing they did not already know.
+
+Results go to evals/results.md (for humans) and evals/results.json.
+"""
+
 from __future__ import annotations
 
 import argparse

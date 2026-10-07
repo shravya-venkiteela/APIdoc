@@ -1,3 +1,15 @@
+"""LLM providers: a tiny interface, one real implementation, a fake, and a cache.
+
+Design notes
+- Providers take text in and return text out. They know nothing about
+  traces or redaction; the pipeline in diagnose.py builds the prompt from
+  already-redacted data, so a provider cannot leak what it never receives.
+- Gemini is called over plain REST with httpx instead of an SDK: one less
+  dependency, and every byte that leaves the machine is visible in this file.
+- CachedProvider records responses to disk and replays them, so the eval and
+  CI run with zero API calls and zero cost.
+"""
+
 from __future__ import annotations
 
 import hashlib

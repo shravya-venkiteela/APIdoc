@@ -1,3 +1,13 @@
+"""A deliberately broken API used as APIdoc's test environment.
+
+Every endpoint fails in one specific, realistic way. The tool is evaluated by
+pointing it at these endpoints and checking that it names the right cause.
+
+Accepted credentials:
+  - the static token "good-token" (scope "read"), or
+  - a JWT minted by mock_server.tokens.mint() (scope taken from the token).
+"""
+
 from __future__ import annotations
 
 import json

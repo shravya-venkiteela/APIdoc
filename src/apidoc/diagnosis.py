@@ -1,3 +1,10 @@
+"""The typed output of APIdoc: what went wrong, the evidence, and the fix.
+
+Both the rules engine and the LLM produce the same Diagnosis type. That is
+deliberate: the eval compares them like-for-like, and the CLI renders either
+without caring where it came from.
+"""
+
 from __future__ import annotations
 
 from enum import StrEnum

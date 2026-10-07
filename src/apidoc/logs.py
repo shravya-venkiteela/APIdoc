@@ -1,3 +1,14 @@
+"""Logging that cannot leak secrets.
+
+Every log record passes through RedactingFilter before any handler formats
+it, so a careless `log.debug("sent %s", headers)` anywhere in the code base
+still comes out masked. Tests assert this for every verbosity level and for
+both output formats.
+
+Levels:  default ERROR · -v INFO · -vv DEBUG · -vvv TRACE (everything).
+Default is ERROR, not WARNING: the diagnosis already says what went wrong.
+"""
+
 from __future__ import annotations
 
 import json

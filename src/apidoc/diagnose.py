@@ -1,3 +1,20 @@
+"""The diagnosis pipeline: rules first, then (optionally) the LLM.
+
+    parsed curl ─► run ─► Trace ─► rules ─► findings ─┐
+                                    │                  │
+                                    └── redact ────────┴─► prompt ─► LLM ─► grounding ─► merge
+
+Guarantees this module is responsible for:
+1. The LLM only ever sees redacted data. The prompt is built exclusively
+   from Trace.redacted() / Finding text passed through the Redactor.
+2. The LLM cannot invent evidence. Every evidence string it returns must
+   appear verbatim (whitespace- and case-insensitive) in the context it was
+   given. Ungrounded evidence is dropped; with none left, the LLM's answer
+   is discarded.
+3. Proven rule findings win. If a rule is at least STRONG_RULE confident and
+   the LLM disagrees, the rule's diagnosis stands.
+"""
+
 from __future__ import annotations
 
 import json

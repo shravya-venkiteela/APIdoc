@@ -1,3 +1,15 @@
+"""OAuth 2.0 client: authorization code + PKCE, client credentials, refresh.
+
+The PKCE flow follows RFC 8252 (OAuth for native apps):
+  1. generate a random code_verifier and its S256 code_challenge
+  2. start a one-shot HTTP listener on 127.0.0.1 with a random free port
+  3. open the browser at the authorize URL (with a random `state`)
+  4. the server redirects back to the listener with ?code=...&state=...
+  5. check `state` (CSRF protection), then exchange code + verifier for tokens
+
+Tokens are returned to the caller, never printed or logged here.
+"""
+
 from __future__ import annotations
 
 import base64

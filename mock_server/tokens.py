@@ -1,3 +1,9 @@
+"""Minimal HS256 JWTs for the mock API (no external dependency).
+
+The secret is public on purpose: this is a test server. Real services must
+never hard-code a signing key.
+"""
+
 from __future__ import annotations
 
 import base64
