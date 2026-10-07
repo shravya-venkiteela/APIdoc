@@ -65,7 +65,7 @@ class Patch(BaseModel):
 class Finding(BaseModel):
     """One rule's conclusion. Evidence items quote the trace, so they can be checked."""
 
-    rule: str
+    rule: str = ""
     category: Category
     summary: str
     evidence: list[str]

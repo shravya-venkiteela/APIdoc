@@ -218,3 +218,20 @@ def test_merge_evidence_keeps_different_facts_with_the_same_value():
 
     items = ["request body: {}", "response body: {}"]
     assert merge_evidence(items) == items
+
+
+def test_auto_skips_the_llm_for_a_clean_json_success(live_server):
+    ctx, redactor = context_for(f"curl -H 'Authorization: Bearer good-token' {live_server}/v1/me")
+    provider = FakeProvider([])  # any call would raise "ran out of responses"
+    d, outcome = diagnose(ctx, redactor, provider, mode="auto")
+    assert d.category == Category.OK
+    assert provider.prompts == []
+    assert not outcome.called
+
+
+def test_auto_still_asks_the_llm_about_a_200_html_page_after_a_redirect(live_server):
+    ctx, redactor = context_for(f"curl -L {live_server}/v1/sso-report")
+    provider = FakeProvider([answer("auth_missing", ["Sign in - Example SSO"])])
+    d, outcome = diagnose(ctx, redactor, provider, mode="auto")
+    assert outcome.called
+    assert d.category == Category.AUTH_MISSING

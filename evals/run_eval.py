@@ -13,6 +13,7 @@ sys.path[:0] = [str(ROOT / "src"), str(ROOT)]
 
 from apidoc.curl import ParsedCurl, parse_curl
 from apidoc.diagnose import STRONG_RULE, LLMOutcome, diagnose
+from apidoc.diagnosis import Diagnosis
 from apidoc.llm import CachedProvider, GeminiProvider, LLMError
 from apidoc.rules import Context
 from apidoc.runner import run

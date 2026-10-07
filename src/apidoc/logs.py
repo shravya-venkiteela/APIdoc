@@ -10,7 +10,7 @@ from apidoc.redact import Redactor
 TRACE = 5
 logging.addLevelName(TRACE, "TRACE")
 LOGGER_NAME = "apidoc"
-_LEVELS = {0: logging.WARNING, 1: logging.INFO, 2: logging.DEBUG, 3: TRACE}
+_LEVELS = {0: logging.ERROR, 1: logging.INFO, 2: logging.DEBUG, 3: TRACE}
 
 
 class RedactingFilter(logging.Filter):

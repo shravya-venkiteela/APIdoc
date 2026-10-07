@@ -1,3 +1,17 @@
+"""Deterministic diagnosis rules.
+
+Each rule looks at the original request and the Trace and either returns a
+Finding or None. Rules run on the *unredacted* data in memory (so they can
+read a JWT's exp claim); everything they emit is redacted before it is shown
+or sent anywhere.
+
+Confidence is a ranking signal, not a probability. Rough scale:
+  0.9+  the trace proves it (e.g. 429 with Retry-After)
+  0.7   strong evidence, one plausible alternative
+  0.5   a likely cause among several
+  <0.4  a guess; the LLM should take over
+"""
+
 from __future__ import annotations
 
 import json
@@ -97,13 +111,13 @@ def connection_failed(ctx: Context) -> Finding | None:
         return None
     host = _host(ctx.request.url)
     return Finding(
-        rule="",
         category=Category.CONNECTION,
         summary=f"Could not connect to {host}: nothing answered at that address.",
         evidence=[f"connection error: {ctx.trace.error}"],
         fix=(
             "Check the host and port for typos and that the server is running. "
-            "For the mock API, start it with `docker compose up`."
+            "For the mock API: `uvicorn mock_server.app:app --port 8000` "
+            "(or `docker compose up --build`)."
         ),
         confidence=0.9,
     )
@@ -118,7 +132,6 @@ def tls_failed(ctx: Context) -> Finding | None:
     if "WRONG_VERSION_NUMBER" in error or "record layer" in error:
         url = ctx.request.url.replace("https://", "http://", 1)
         return Finding(
-            rule="",
             category=Category.TLS,
             summary="You used https:// but the server only speaks plain HTTP on that port.",
             evidence=evidence,
@@ -127,7 +140,6 @@ def tls_failed(ctx: Context) -> Finding | None:
             patch=Patch(url=url),
         )
     return Finding(
-        rule="",
         category=Category.TLS,
         summary="The TLS handshake failed; the server's certificate was not trusted.",
         evidence=evidence,
@@ -144,7 +156,6 @@ def timed_out(ctx: Context) -> Finding | None:
     if ctx.trace.error_kind != "timeout":
         return None
     return Finding(
-        rule="",
         category=Category.TIMEOUT,
         summary="The request timed out before the server answered.",
         evidence=[f"timeout: {ctx.trace.error}"],
@@ -161,7 +172,6 @@ def https_required(ctx: Context) -> Finding | None:
     if "plain http request was sent to https port" not in final.body.lower():
         return None
     return Finding(
-        rule="",
         category=Category.TLS,
         summary="You sent plain HTTP to a port that expects HTTPS.",
         evidence=[_status_line(final), f"response body: {_snippet(final.body)}"],
@@ -184,7 +194,6 @@ def auth_dropped_on_redirect(ctx: Context) -> Finding | None:
     scheme = (first.request.header("authorization") or "").split(" ", 1)[0]
     n = len(hops)
     return Finding(
-        rule="",
         category=Category.AUTH_DROPPED_ON_REDIRECT,
         summary=(
             f"Your Authorization header was dropped when the redirect moved from "
@@ -220,7 +229,6 @@ def method_changed_on_redirect(ctx: Context) -> Finding | None:
             and nxt.request.method == "GET"
         ):
             return Finding(
-                rule="",
                 category=Category.METHOD_CHANGED_ON_REDIRECT,
                 summary=(
                     f"The {hop.status} redirect turned your {hop.request.method} into a GET "
@@ -240,6 +248,9 @@ def method_changed_on_redirect(ctx: Context) -> Finding | None:
                 patch=Patch(url=nxt.request.url, method=hop.request.method),
             )
     return None
+
+
+# ------------------------------------------------------------ auth ----------
 
 
 def _has_credentials(req: Request) -> bool:
@@ -269,7 +280,6 @@ def api_key_in_query(ctx: Context) -> Finding | None:
     if mentioned:
         evidence.append(f"response body: {_snippet(final.body)}")
     return Finding(
-        rule="",
         category=Category.API_KEY_LOCATION,
         summary=f"The API key went in the URL (?{name}=) but the API expects it in a header.",
         evidence=evidence,
@@ -296,7 +306,6 @@ def auth_missing(ctx: Context) -> Finding | None:
         header = mentioned.group(1)
         evidence.append(f"response body: {_snippet(final.body)}")
         return Finding(
-            rule="",
             category=Category.AUTH_MISSING,
             summary=f"The request had no credentials; the API wants a `{header}` header.",
             evidence=evidence,
@@ -306,7 +315,6 @@ def auth_missing(ctx: Context) -> Finding | None:
         )
     scheme = www.get("scheme", "Bearer") or "Bearer"
     return Finding(
-        rule="",
         category=Category.AUTH_MISSING,
         summary="The request had no credentials, so the server refused it.",
         evidence=evidence,
@@ -325,7 +333,6 @@ def auth_scheme_wrong(ctx: Context) -> Finding | None:
     scheme, _, rest = auth.strip().partition(" ")
     if rest.lower().startswith("bearer "):
         return Finding(
-            rule="",
             category=Category.AUTH_SCHEME,
             summary='The Authorization header says "Bearer" twice.',
             evidence=["Authorization header starts with 'Bearer Bearer'", _status_line(final)],
@@ -336,7 +343,6 @@ def auth_scheme_wrong(ctx: Context) -> Finding | None:
     if rest and scheme.lower() in KNOWN_SCHEMES:
         return None
     return Finding(
-        rule="",
         category=Category.AUTH_SCHEME,
         summary='The token was sent without an auth scheme: it needs "Bearer " in front.',
         evidence=[
@@ -376,7 +382,6 @@ def token_expired(ctx: Context) -> Finding | None:
     if "iat" in claims:
         lifetime = f" Tokens from this issuer last about {_ago(exp - float(claims['iat']))}."
     return Finding(
-        rule="",
         category=Category.AUTH_EXPIRED,
         summary=f"Your token expired {_ago(now - exp)} ago.",
         evidence=evidence,
@@ -411,7 +416,6 @@ def token_not_yet_valid(ctx: Context) -> Finding | None:
         if abs(skew) > 60:
             summary = f"Clock skew: your computer's clock is {_ago(skew)} off from the server's."
     return Finding(
-        rule="",
         category=Category.AUTH_NOT_YET_VALID,
         summary=summary,
         evidence=evidence,
@@ -437,7 +441,6 @@ def insufficient_scope(ctx: Context) -> Finding | None:
         if have:
             evidence.append(f"token scope claim: {have}")
         return Finding(
-            rule="",
             category=Category.AUTH_SCOPE,
             summary=f"Your token is valid but lacks the `{need}` scope this endpoint needs.",
             evidence=evidence,
@@ -446,7 +449,6 @@ def insufficient_scope(ctx: Context) -> Finding | None:
         )
     if ctx.request.has_header("authorization"):
         return Finding(
-            rule="",
             category=Category.AUTH_SCOPE,
             summary="You are authenticated but not allowed to do this (403 Forbidden).",
             evidence=[_status_line(final), f"response body: {_snippet(final.body)}"],
@@ -467,7 +469,6 @@ def token_rejected(ctx: Context) -> Finding | None:
         evidence.append(f"WWW-Authenticate: {final.header('www-authenticate')}")
     detail = www.get("error_description")
     return Finding(
-        rule="",
         category=Category.AUTH_INVALID,
         summary="The server rejected the token" + (f": {detail}." if detail else "."),
         evidence=evidence,
@@ -497,7 +498,6 @@ def json_sent_with_wrong_content_type(ctx: Context) -> Finding | None:
     if implicit:
         evidence.insert(2, "curl added that Content-Type itself because the command used -d")
     return Finding(
-        rule="",
         category=Category.CONTENT_TYPE,
         summary=(
             "You sent JSON but labelled it as "
@@ -536,7 +536,6 @@ def malformed_json(ctx: Context) -> Finding | None:
             "use `--data-binary @body.json`, or use PowerShell 7."
         )
     return Finding(
-        rule="",
         category=Category.MALFORMED_BODY,
         summary="The request body is not valid JSON.",
         evidence=evidence,
@@ -565,7 +564,6 @@ def validation_failed(ctx: Context) -> Finding | None:
     if not problems:
         return None
     return Finding(
-        rule="",
         category=Category.VALIDATION,
         summary="The server understood the request but rejected these fields: "
         + "; ".join(problems)
@@ -589,10 +587,11 @@ def method_not_allowed(ctx: Context) -> Finding | None:
         allowed = [m.strip().upper() for m in allow.split(",") if m.strip()]
         if allowed and final.request.method not in allowed:
             target = allowed[0]
+            # Only offer a machine-applied fix we can stand behind: switching
+            # GET -> POST without a body would just fail differently.
             if target not in UNSAFE_METHODS or final.request.body:
                 patch = Patch(method=target)
     return Finding(
-        rule="",
         category=Category.METHOD_NOT_ALLOWED,
         summary=f"This URL does not accept {final.request.method}"
         + (f"; it accepts {allow}." if allow else "."),
@@ -610,7 +609,6 @@ def not_found(ctx: Context) -> Finding | None:
         return None
     path = urlsplit(final.request.url).path
     return Finding(
-        rule="",
         category=Category.NOT_FOUND,
         summary=f"The server has nothing at {path}.",
         evidence=[f"requested path: {path}", _status_line(final), f"body: {_snippet(final.body)}"],
@@ -629,7 +627,6 @@ def not_acceptable(ctx: Context) -> Finding | None:
         return None
     accept = final.request.header("accept") or "(none)"
     return Finding(
-        rule="",
         category=Category.NOT_ACCEPTABLE,
         summary=f"You asked for {accept}, which this endpoint cannot produce.",
         evidence=[f"request Accept: {accept}", _status_line(final)],
@@ -650,7 +647,6 @@ def vague_bad_request(ctx: Context) -> Finding | None:
     if params:
         evidence.append(f"query parameters sent: {', '.join(params)}")
     return Finding(
-        rule="",
         category=Category.BAD_PARAMETER,
         summary="The server rejected the request (400) without saying which part is wrong.",
         evidence=evidence,
@@ -674,7 +670,6 @@ def rate_limited(ctx: Context) -> Finding | None:
             evidence.append(f"{name}: {final.header(name)}")
     wait = f"Wait {retry} seconds" if retry and retry.isdigit() else "Wait"
     return Finding(
-        rule="",
         category=Category.RATE_LIMITED,
         summary="You hit the API's rate limit.",
         evidence=evidence,
@@ -696,7 +691,6 @@ def error_in_success(ctx: Context) -> Finding | None:
     if not (failed or error):
         return None
     return Finding(
-        rule="",
         category=Category.ERROR_IN_SUCCESS,
         summary="The status says 200 OK, but the body reports an error.",
         evidence=[_status_line(final), f"response body: {_snippet(json.dumps(body))}"],
@@ -715,7 +709,6 @@ def server_error(ctx: Context) -> Finding | None:
         return None
     gateway = final.status in (502, 503, 504)
     return Finding(
-        rule="",
         category=Category.SERVER_ERROR,
         summary=(
             "A gateway or proxy in front of the API failed."
@@ -752,15 +745,24 @@ def diagnose_with_rules(ctx: Context) -> Diagnosis:
             findings=findings,
         )
     if final and final.status < 400:
-        # Low on purpose: people run APIdoc because something looks wrong, so
-        # "no rule found a problem" is weak evidence that nothing is. The eval
-        # caught this (h05: an SSO login page served as 200 OK).
+        # A success is only trusted when nothing about it looks off. An API that
+        # answers with HTML, or only after a redirect, may have sent you to a
+        # login page with 200 OK (the eval's h05), so that stays low and "auto"
+        # asks the LLM. A plain JSON 200 does not cost an LLM call.
+        html = "html" in (final.header("content-type") or "").lower()
+        redirected = len(ctx.trace.hops) > 1
+        suspicious = html or redirected
+        evidence = [_status_line(final)]
+        if html:
+            evidence.append(f"response Content-Type: {final.header('content-type')}")
+        if redirected:
+            evidence.append(f"reached after {len(ctx.trace.hops) - 1} redirect(s)")
         return Diagnosis(
             category=Category.OK,
             summary=f"The request succeeded ({final.status} {final.reason}).",
-            evidence=[_status_line(final)],
+            evidence=evidence,
             fix="Nothing to fix.",
-            confidence=0.5,
+            confidence=0.5 if suspicious else 0.9,
         )
     status = f"{final.status} {final.reason}" if final else ctx.trace.error_kind or "no response"
     evidence = [f"final status: {status}"]

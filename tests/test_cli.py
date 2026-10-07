@@ -165,3 +165,9 @@ def test_llm_auto_falls_back_quietly(live_server):
     r = apidoc("diagnose", f"curl {live_server}/v1/limited", "--llm", "auto")
     assert r.exit_code == 0, r.output
     assert "LLM was not used" not in r.stderr
+
+
+def test_default_verbosity_is_quiet_even_when_nothing_answers():
+    r = apidoc("diagnose", "curl -m 5 http://127.0.0.1:9/v1/me", "--llm", "never")
+    assert "connection" in r.stdout
+    assert r.stderr == ""  # the diagnosis says it; no raw WARNING line on top
