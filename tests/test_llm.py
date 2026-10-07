@@ -163,3 +163,13 @@ def test_normalizer_makes_volatile_prompts_share_a_key(tmp_path):
 
     c = CachedProvider(FakeProvider([]), tmp_path, normalize=drop_dates)
     assert c.key("s", "date: Mon, 05 Oct 2026") == c.key("s", "date: Tue, 06 Oct 2026")
+
+
+def test_prune_deletes_only_recordings_this_run_did_not_use(tmp_path):
+    stale = tmp_path / "0000stale.json"
+    stale.write_text('{"response": "old"}', encoding="utf-8")
+    provider = CachedProvider(FakeProvider(["fresh"]), tmp_path, mode="record")
+    provider.complete("sys", "prompt")
+    removed = provider.prune()
+    assert removed == [stale]
+    assert len(list(tmp_path.glob("*.json"))) == 1  # the recording just used

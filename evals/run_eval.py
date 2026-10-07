@@ -275,8 +275,12 @@ def main(argv: list[str] | None = None) -> int:
         help="seconds between live LLM calls (free tier is ~10-15 requests/minute)",
     )
     ap.add_argument("--only", help="comma-separated case ids, for debugging one case")
+    ap.add_argument(
+        "--prune", action="store_true", help="delete recordings no case used (replay/record)"
+    )
     args = ap.parse_args(argv)
-
+    if args.prune and (args.only or args.llm not in ("replay", "record")):
+        ap.error("--prune needs --llm replay or record, over all cases (no --only)")
     cases = json.loads(args.cases.read_text(encoding="utf-8"))["cases"]
     if args.only:
         wanted = set(args.only.split(","))
@@ -323,6 +327,12 @@ def main(argv: list[str] | None = None) -> int:
     print(md)
     if provider is not None:
         print(f"LLM: {provider.live_calls} live calls, {provider.cache_hits} from cache")
+        if args.prune:
+            if any(r.llm_error for r in results):
+                print("not pruning: some cases had no usable LLM answer", file=sys.stderr)
+                return 1
+            stale = provider.prune()
+            print(f"pruned {len(stale)} unused recording(s)")
     return 0
 
 

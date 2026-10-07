@@ -1,5 +1,0 @@
-{
-  "provider": "gemini",
-  "model": "gemini-3.5-flash-lite",
-  "response": "{\n  \"category\": \"auth_not_yet_valid\",\n  \"summary\": \"The provided authentication token's not-before (nbf) or issued-at (iat) time is set in the future.\",\n  \"evidence\": [\n    \"HTTP/1.1 401 Unauthorized\",\n    \"www-authenticate: Bearer error=\\\"invalid_token\\\", error_description=\\\"token not yet valid\\\"\"\n  ],\n  \"fix\": \"Use a token that is currently valid, or ensure your client's clock is synchronized correctly.\",\n  \"confidence\": 0.85\n}"
-}

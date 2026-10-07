@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 import time
 import webbrowser
@@ -12,7 +13,7 @@ import typer
 from apidoc import __version__, logs, oauth, profiles
 from apidoc.curl import CurlParseError, ParsedCurl, parse_curl
 from apidoc.diagnose import LLMOutcome, diagnose
-from apidoc.diagnosis import Diagnosis
+from apidoc.diagnosis import Category, Diagnosis
 from apidoc.export import to_curl, to_httpx
 from apidoc.llm import GeminiProvider, LLMError
 from apidoc.redact import Redactor
@@ -28,6 +29,7 @@ app = typer.Typer(
 
 EXIT_OK = 0
 EXIT_USAGE = 2
+DEFAULT_BASE_URL = "http://127.0.0.1:8000"
 
 
 def _fail(message: str) -> typer.Exit:
@@ -43,6 +45,23 @@ def _read_command(command: str | None, from_file: Path | None) -> str:
             raise _fail("give a curl command, -f FILE, or pipe one in")
         return sys.stdin.read()
     return command
+
+
+def _scope_fix(d: Diagnosis, trace: Trace, profile: str | None) -> Diagnosis:
+    """With --profile, a missing-scope fix can name the exact command to run."""
+    if profile is None or d.category != Category.AUTH_SCOPE or trace.final is None:
+        return d
+    needed = re.search(r'scope="([^"]+)"', trace.final.header("www-authenticate") or "")
+    if not needed:
+        return d
+    s = profiles.load(profile)
+    scope = " ".join(dict.fromkeys([*s.get("scope", "").split(), *needed.group(1).split()]))
+    cmd = f'apidoc auth login --profile {profile} --scope "{scope}"'
+    if s.get("provider", "mock") != "mock":
+        cmd += f" --provider {s['provider']}"
+    if s.get("base_url") and s.get("base_url") != DEFAULT_BASE_URL:
+        cmd += f" --base-url {s['base_url']}"
+    return d.model_copy(update={"fix": f"{d.fix} Run: {cmd}"})
 
 
 def _gemini_key() -> tuple[str | None, str]:
@@ -218,6 +237,7 @@ def diagnose_cmd(
 
     provider, note = _provider(llm)
     d, outcome = diagnose(Context(parsed, trace), redactor, provider, mode=llm)
+    d = _scope_fix(d, trace, profile)
     log.info("diagnosis: %s (%.2f, %s)", d.category.value, d.confidence, d.source)
     if llm == "always" and not outcome.used:
         # The user asked for the LLM explicitly; falling back silently would hide it.
@@ -287,6 +307,12 @@ app.add_typer(auth_app, name="auth")
 open_browser = webbrowser.open
 
 
+def _announce_and_open(url: str) -> object:
+    # Printed only once the server is known to be reachable.
+    typer.echo("Opening your browser to sign in...")
+    return open_browser(url)
+
+
 def _config(profile: str) -> oauth.ProviderConfig:
     s = profiles.load(profile)
     return oauth.preset(s["provider"], s.get("base_url", ""), s["client_id"], s.get("scope", ""))
@@ -311,7 +337,7 @@ def _expiry(settings: dict[str, str]) -> str:
 def auth_login(
     profile: Annotated[str, typer.Option(help="Name to store this login under.")] = "mock",
     provider: Annotated[str, typer.Option(help="mock | github | google")] = "mock",
-    base_url: Annotated[str, typer.Option(help="Mock server URL.")] = "http://127.0.0.1:8000",
+    base_url: Annotated[str, typer.Option(help="Mock server URL.")] = DEFAULT_BASE_URL,
     flow: Annotated[str, typer.Option(help="pkce | client-credentials")] = "pkce",
     client_id: Annotated[str | None, typer.Option(help="OAuth client id.")] = None,
     scope: Annotated[str, typer.Option(help="Space-separated scopes.")] = "read",
@@ -330,8 +356,7 @@ def auth_login(
     extra = {"ttl": str(mock_ttl)} if mock_ttl is not None and provider == "mock" else None
     try:
         if flow == "pkce":
-            typer.echo("Opening your browser to sign in...")
-            tok = oauth.login_pkce(cfg, open_browser=open_browser, extra_token_params=extra)
+            tok = oauth.login_pkce(cfg, open_browser=_announce_and_open, extra_token_params=extra)
         else:
             secret = profiles.get_secret(profile, "client_secret") or typer.prompt(
                 "Client secret", hide_input=True
@@ -396,6 +421,8 @@ def auth_logout(profile: Annotated[str, typer.Option()] = "mock") -> None:
     profiles.delete(profile)
     typer.echo(f"Removed profile {profile!r} and its stored secrets.")
 
+
+# ------------------------------------------------------------ keys ----------
 
 key_app = typer.Typer(no_args_is_help=True, help="API keys in the OS keyring.")
 app.add_typer(key_app, name="key")

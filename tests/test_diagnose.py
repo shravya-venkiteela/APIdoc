@@ -203,3 +203,18 @@ def test_a_real_rule_finding_still_overrules(live_server):
     d, outcome = diagnose(ctx, redactor, fake, mode="always")
     assert d.category == Category.AUTH_SCHEME
     assert "kept the rule" in outcome.reason
+
+
+def test_merge_evidence_drops_rewordings_of_the_same_fact():
+    from apidoc.diagnose import merge_evidence
+
+    rules = ["response: 400 Bad Request", 'response body: {"error":"invalid parameter"}']
+    llm = ["HTTP/1.1 400 Bad Request", '{"error": "invalid parameter"}', "date_from=05/10/2026"]
+    assert merge_evidence(rules, llm) == [*rules, "date_from=05/10/2026"]
+
+
+def test_merge_evidence_keeps_different_facts_with_the_same_value():
+    from apidoc.diagnose import merge_evidence
+
+    items = ["request body: {}", "response body: {}"]
+    assert merge_evidence(items) == items

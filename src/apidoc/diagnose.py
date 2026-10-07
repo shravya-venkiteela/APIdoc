@@ -101,9 +101,6 @@ def build_context(ctx: Context, redactor: Redactor, rule_diag: Diagnosis) -> str
     return "\n".join(parts)
 
 
-# ------------------------------------------------------------ grounding -----
-
-
 def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
@@ -116,6 +113,32 @@ def ground(evidence: list[str], context: str) -> tuple[list[str], list[str]]:
         needle = _norm(item.strip().strip("\"'`"))
         (kept if needle and needle in haystack else dropped).append(item)
     return kept, dropped
+
+
+_LABEL = re.compile(
+    r"^(?:hop \d+ )?(?:response(?: body)?|status)\s*:\s*"  # rules: "response: 400 ..."
+    r"|^http/\d(?:\.\d)?\s+",  # raw status line: "HTTP/1.1 400 ..."
+    re.I,
+)
+
+
+def _evidence_key(item: str) -> str:
+    """What an evidence line says, ignoring how it is written: the rules write
+    'response: 400 Bad Request', the LLM copies 'HTTP/1.1 400 Bad Request'."""
+    key = re.sub(r"[^a-z0-9]", "", _LABEL.sub("", item.strip()).lower())
+    return key or _norm(item)  # e.g. "response body: {}": keep it, keyed as written
+
+
+def merge_evidence(*groups: list[str]) -> list[str]:
+    """Concatenate, dropping items that repeat an earlier one. First wording wins."""
+    seen: set[str] = set()
+    merged: list[str] = []
+    for item in (i for g in groups for i in g):
+        key = _evidence_key(item)
+        if key not in seen:
+            seen.add(key)
+            merged.append(item)
+    return merged
 
 
 def _parse_answer(text: str) -> LLMAnswer:
@@ -181,8 +204,11 @@ def diagnose(
     if not kept:
         outcome.reason = "LLM answer discarded: none of its evidence appears in the trace"
         return rule_diag.redacted(redactor), outcome
+
     agrees = answer.category == rule_diag.category
-    proven = bool(rule_diag.findings and rule_diag.confidence >= STRONG_RULE)
+    # Only an actual rule *finding* can overrule the LLM. The fallback verdicts
+    # ("ok", "unknown") mean no rule matched, which proves nothing.
+    proven = bool(rule_diag.findings) and rule_diag.confidence >= STRONG_RULE
     if not agrees and proven:
         outcome.reason = (
             f"LLM said {answer.category}, but rule finding {rule_diag.category} is "
@@ -197,7 +223,7 @@ def diagnose(
             update={
                 "summary": answer.summary,
                 "fix": answer.fix,
-                "evidence": list(dict.fromkeys([*rule_diag.evidence, *kept])),
+                "evidence": merge_evidence(rule_diag.evidence, kept),
                 "confidence": max(rule_diag.confidence, min(answer.confidence, LLM_CONFIDENCE_CAP)),
                 "source": "rules+llm",
             }

@@ -129,6 +129,7 @@ def login_pkce(
         "code_challenge": challenge,
         "code_challenge_method": "S256",
     }
+    check_reachable(cfg.authorize_url, transport=transport)
     callback.start()
     open_browser(f"{cfg.authorize_url}?{urlencode(query)}")
     params = callback.wait(timeout)
@@ -182,6 +183,20 @@ def refresh(
     return _token_request(cfg, form, transport=transport)
 
 
+def check_reachable(url: str, *, transport: httpx.BaseTransport | None = None) -> None:
+    """Fail in seconds, not after a 2-minute browser timeout, if nothing answers.
+    Any HTTP response counts: only "no server at all" is an error."""
+    try:
+        with httpx.Client(transport=transport, timeout=5) as client:
+            client.get(url)
+    except httpx.HTTPError as exc:
+        base = f"{urlsplit(url).scheme}://{urlsplit(url).netloc}"
+        raise OAuthError(
+            f"cannot reach {base} ({type(exc).__name__}). Is the server running, "
+            "and is --base-url right?"
+        ) from exc
+
+
 def _token_request(
     cfg: ProviderConfig,
     form: dict[str, str],
@@ -189,9 +204,16 @@ def _token_request(
     auth: tuple[str, str] | None = None,
     transport: httpx.BaseTransport | None = None,
 ) -> TokenSet:
-    with httpx.Client(transport=transport, timeout=30) as client:
-        # Accept JSON: GitHub answers form-encoded otherwise.
-        r = client.post(cfg.token_url, data=form, auth=auth, headers={"Accept": "application/json"})
+    try:
+        with httpx.Client(transport=transport, timeout=30) as client:
+            # Accept JSON: GitHub answers form-encoded otherwise.
+            r = client.post(
+                cfg.token_url, data=form, auth=auth, headers={"Accept": "application/json"}
+            )
+    except httpx.HTTPError as exc:
+        raise OAuthError(
+            f"cannot reach the token endpoint {cfg.token_url}: {type(exc).__name__}"
+        ) from exc
     try:
         body = r.json()
     except ValueError as exc:

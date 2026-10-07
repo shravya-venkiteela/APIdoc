@@ -161,3 +161,33 @@ def test_redactor_gets_the_key_not_a_tuple(live_server, monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "AIza-env-key-000000000000000000000")
     apidoc("diagnose", f"curl {live_server}/v1/limited", "--llm", "never")
     assert "AIza-env-key-000000000000000000000" in seen
+
+
+def test_scope_fix_names_the_exact_login_command(live_server, fake_browser):
+    apidoc("auth", "login", "--base-url", live_server, "--scope", "read")
+    r = apidoc(
+        "diagnose", f"curl {live_server}/v1/admin/users",
+        "--profile", "mock", "--with-token", "--llm", "never", "--json",
+    )  # fmt: skip
+    fix = Diagnosis.model_validate_json(r.stdout).fix
+    assert f'apidoc auth login --profile mock --scope "read admin" --base-url {live_server}' in fix
+
+
+def test_login_against_a_dead_server_fails_fast_without_a_browser(monkeypatch):
+    opened = []
+    monkeypatch.setattr(cli, "open_browser", opened.append)
+    r = apidoc("auth", "login", "--base-url", "http://127.0.0.1:9")
+    assert r.exit_code == 2
+    assert "cannot reach http://127.0.0.1:9" in r.stderr
+    assert opened == []  # no browser tab for a server that is not there
+    assert "Opening your browser" not in r.output
+
+
+def test_client_credentials_against_a_dead_server_is_a_clean_error():
+    r = apidoc(
+        "auth", "login", "--profile", "svc", "--flow", "client-credentials",
+        "--base-url", "http://127.0.0.1:9", input="demo-service-secret\n",
+    )  # fmt: skip
+    assert r.exit_code == 2
+    assert "cannot reach the token endpoint" in r.stderr
+    assert "Traceback" not in r.output

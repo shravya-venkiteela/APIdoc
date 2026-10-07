@@ -191,6 +191,7 @@ class CachedProvider:
         self._last_call = 0.0
         self.live_calls = 0
         self.cache_hits = 0
+        self.used: set[str] = set()  # cache files read or written this run
 
     def key(self, system: str, prompt: str) -> str:
         raw = json.dumps([self.name, self.model, system, self.normalize(prompt)]).encode()
@@ -198,6 +199,7 @@ class CachedProvider:
 
     def complete(self, system: str, prompt: str) -> str:
         path = self.cache_dir / f"{self.key(system, prompt)}.json"
+        self.used.add(path.name)
         if self.mode != "live" and path.exists():
             self.cache_hits += 1
             return json.loads(path.read_text(encoding="utf-8"))["response"]
@@ -211,6 +213,14 @@ class CachedProvider:
             record = {"provider": self.name, "model": self.model, "response": text}
             path.write_text(json.dumps(record, indent=2), encoding="utf-8")
         return text
+
+    def prune(self) -> list[Path]:
+        """Delete recordings this run did not use (left behind when a prompt
+        changed). Only meaningful after running every case."""
+        stale = [p for p in self.cache_dir.glob("*.json") if p.name not in self.used]
+        for p in stale:
+            p.unlink()
+        return stale
 
     def _throttle(self) -> None:
         """Stay under free-tier per-minute limits during an eval run."""
