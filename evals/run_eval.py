@@ -63,6 +63,9 @@ _VOLATILE = [
     (re.compile(r"[A-Z][a-z]{2}, \d{2} [A-Z][a-z]{2} \d{4} \d{2}:\d{2}:\d{2} GMT"), "<date>"),
     (re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC"), "<timestamp>"),
     (re.compile(r"\b\d+ (second|minute|hour|day)s?\b"), r"<n> \1s"),
+    # OS-specific socket errors: "[WinError 10061] ..." on Windows, "[Errno 111]
+    # Connection refused" on Linux. Recordings made on one must replay on the other (CI).
+    (re.compile(r"(no response: \w+:|connection error:) .*"), r"\1 <error>"),
 ]
 
 

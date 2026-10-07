@@ -1,5 +1,7 @@
 # APIdoc
 
+[![CI](https://github.com/shravya-venkiteela/APIdoc/actions/workflows/ci.yml/badge.svg)](https://github.com/shravya-venkiteela/APIdoc/actions/workflows/ci.yml)
+
 Paste a failing `curl` command; APIdoc re-runs it with a full trace and tells you **why** it
 failed, what proves it, and how to fix it. When the fix is mechanical (a missing header, the
 wrong method, the wrong URL after a redirect) it prints the corrected request.

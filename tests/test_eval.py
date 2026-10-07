@@ -125,3 +125,16 @@ def test_failed_llm_call_is_not_credited_to_the_llm(live_server, tmp_path):
         assert r.llm_error
         assert not r.llm.diagnosed
         assert r.auto == r.rules  # users get the rules' answer when the LLM is down
+
+
+def test_normalize_makes_os_socket_errors_identical():
+    """Recorded on Windows, replayed on Linux CI: the cache key must match."""
+    windows = (
+        "no response: connect: [WinError 10061] No connection could be made because the "
+        "target machine actively refused it\n    evidence: connection error: [WinError 10061] x"
+    )
+    linux = (
+        "no response: connect: [Errno 111] Connection refused\n"
+        "    evidence: connection error: [Errno 111] Connection refused"
+    )
+    assert run_eval.normalize(windows) == run_eval.normalize(linux)

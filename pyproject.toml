@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "hypothesis>=6.100", "fastapi>=0.110", "uvicorn>=0.29", "ruff>=0.5"]
+dev = ["pytest>=8", "hypothesis>=6.100", "fastapi>=0.110", "uvicorn>=0.29", "ruff==0.16.9"]
 
 [project.scripts]
 apidoc = "apidoc.cli:app"
