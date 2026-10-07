@@ -10,7 +10,9 @@ CLI exposes as --allow-unsafe. The alternative is to analyse a saved trace.
 from __future__ import annotations
 
 import logging
+import re
 import time
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -39,6 +41,26 @@ class UnsafeRequestError(RuntimeError):
             "saved trace with --trace-file."
         )
         self.method = method
+
+
+_REFUSED = re.compile(r"refused|errno 111|errno 61|10061", re.I)
+_NO_SUCH_HOST = re.compile(
+    r"getaddrinfo|name or service not known|nodename nor servname|11001|no address", re.I
+)
+
+
+def _portable(message: str, url: str) -> str:
+    """The same failure reads differently per OS ("[WinError 10061] No connection
+    could be made..." vs "[Errno 111] Connection refused"). Say it one way, so the
+    evidence, the LLM prompt and the eval are identical everywhere; keep the raw
+    text in the debug log."""
+    log.debug("raw connect error: %s", message)
+    netloc = urlsplit(url).netloc
+    if _REFUSED.search(message):
+        return f"connection refused: nothing is listening at {netloc}"
+    if _NO_SUCH_HOST.search(message):
+        return f"name resolution failed: {urlsplit(url).hostname} could not be resolved"
+    return message
 
 
 def run(
@@ -89,6 +111,8 @@ def run(
     except httpx.ConnectError as exc:
         message = str(exc)
         kind = "tls" if any(s in message for s in ("SSL", "CERTIFICATE", "TLS")) else "connect"
+        if kind == "connect":
+            message = _portable(message, req.url)
         trace.error, trace.error_kind = message, kind
     except httpx.HTTPError as exc:
         trace.error, trace.error_kind = f"{type(exc).__name__}: {exc}", "http"

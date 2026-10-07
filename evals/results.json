@@ -411,7 +411,7 @@
       "cause_named": true,
       "confidence": 0.9,
       "source": "rules+llm",
-      "summary": "The request failed because no server was listening on the specified port."
+      "summary": "The request failed because nothing is listening at the specified IP address and port."
     },
     "llm_note": "LLM agreed with the rules and rewrote the explanation",
     "llm_error": false,

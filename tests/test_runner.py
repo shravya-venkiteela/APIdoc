@@ -97,3 +97,19 @@ def test_redacted_trace_has_no_secret_and_round_trips(live_server):
     assert f"Bearer {MASK}" in text
     assert trace.is_redacted
     assert Trace.from_json(text) == trace
+
+
+def test_connect_errors_read_the_same_on_every_os():
+    """Evidence, the LLM prompt and the eval must not depend on the OS's wording."""
+    from apidoc.runner import _portable
+
+    windows = (
+        "[WinError 10061] No connection could be made because the target machine "
+        "actively refused it"
+    )
+    for raw in (windows, "[Errno 111] Connection refused", "[Errno 61] Connection refused"):
+        assert _portable(raw, "http://127.0.0.1:9/v1/me") == (
+            "connection refused: nothing is listening at 127.0.0.1:9"
+        )
+    dns = "[Errno -2] Name or service not known"
+    assert "could not be resolved" in _portable(dns, "http://no-such-host.invalid/x")

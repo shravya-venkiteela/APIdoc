@@ -1,5 +1,5 @@
 {
   "provider": "gemini",
   "model": "gemini-3.5-flash-lite",
-  "response": "{\n  \"category\": \"connection\",\n  \"summary\": \"The request failed because no server was listening on the specified port.\",\n  \"evidence\": [\n    \"GET http://127.0.0.1:9/v1/me\",\n    \"no response: connect: [WinError 10061] No connection could be made because the target machine actively refused it\"\n  ],\n  \"fix\": \"Ensure the local service is running and listening on the correct port.\",\n  \"confidence\": 0.95\n}"
+  "response": "{\n  \"category\": \"connection\",\n  \"summary\": \"The request failed because nothing is listening at the specified IP address and port.\",\n  \"evidence\": [\n    \"GET http://127.0.0.1:9/v1/me\",\n    \"no response: connect: connection refused: nothing is listening at 127.0.0.1:9\"\n  ],\n  \"fix\": \"Check that the server is running and that the host and port in the URL are correct.\",\n  \"confidence\": 0.95\n}"
 }
