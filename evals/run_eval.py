@@ -9,7 +9,8 @@ the actual cause (one of the case's `mentions` keywords). Category alone is
 too easy: "bad_parameter" for a vague 400 is correct but tells the user
 nothing they did not already know.
 
-Results go to evals/results.md (for humans) and evals/results.json.
+Results go to evals/results.md (for humans) and evals/results.json;
+--cases evals/heldout.json writes results-heldout.md / .json instead.
 """
 
 from __future__ import annotations
@@ -205,7 +206,12 @@ def pct(n: int, d: int) -> str:
 
 
 def report(results: list[CaseResult], model: str | None, mode: str) -> str:
-    groups = ["beginner", "experienced", "hard"]
+    # Only the groups present: cases.json has the first three, heldout.json the last.
+    groups = [
+        g
+        for g in ("beginner", "experienced", "hard", "heldout")
+        if any(r.audience == g for r in results)
+    ]
     has_llm = any(r.llm is not None for r in results)
     lines = [
         "# APIdoc eval results",
@@ -270,9 +276,18 @@ def report(results: list[CaseResult], model: str | None, mode: str) -> str:
         "",
         "## Limitations",
         "",
-        "- The cases are self-authored against a self-built mock API. The 'hard' cases",
-        "  were written so that no rule matches them, which is the only part of this",
-        "  eval that can show the LLM adding value; it is still small (5 cases).",
+        *(
+            [
+                "- The cases are self-authored against a self-built mock API. The 'hard' cases",
+                "  were written so that no rule matches them, which is the only part of this",
+                "  eval that can show the LLM adding value; it is still small (5 cases).",
+            ]
+            if "hard" in groups
+            else [
+                "- Held-out cases: committed before the first LLM run (see the git history)",
+                "  and no rule was written for them. Still self-authored, against a mock API.",
+            ]
+        ),
         "- 'Cause named' is a keyword check, not a judgement of explanation quality.",
         "- One LLM sample per case. Recorded responses make reruns reproducible, but",
         "  a fresh recording can score differently.",
@@ -337,8 +352,10 @@ def main(argv: list[str] | None = None) -> int:
 
     md = report(results, model, args.llm)
     # No run timestamp and LF endings: an unchanged result leaves git clean.
-    (HERE / "results.md").write_text(md, encoding="utf-8", newline="\n")
-    (HERE / "results.json").write_text(
+    # cases.json -> results.md; heldout.json -> results-heldout.md
+    stem = "results" if args.cases.name == "cases.json" else f"results-{args.cases.stem}"
+    (HERE / f"{stem}.md").write_text(md, encoding="utf-8", newline="\n")
+    (HERE / f"{stem}.json").write_text(
         json.dumps([asdict(r) for r in results], indent=2) + "\n", encoding="utf-8", newline="\n"
     )
     print()

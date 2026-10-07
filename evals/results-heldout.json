@@ -1,0 +1,282 @@
+[
+  {
+    "id": "x01",
+    "audience": "heldout",
+    "title": "enum value in the wrong case",
+    "expected": "bad_parameter",
+    "rules": {
+      "category": "bad_parameter",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.3,
+      "source": "rules",
+      "summary": "The server rejected the request (400) without saying which part is wrong."
+    },
+    "auto": {
+      "category": "bad_parameter",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.3,
+      "source": "rules",
+      "summary": "The server rejected the request (400) without saying which part is wrong."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "x02",
+    "audience": "heldout",
+    "title": "GraphQL error in a 200 response",
+    "expected": "error_in_success",
+    "rules": {
+      "category": "error_in_success",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The status says 200 OK, but the body reports an error."
+    },
+    "auto": {
+      "category": "error_in_success",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The status says 200 OK, but the body reports an error."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "x03",
+    "audience": "heldout",
+    "title": "revoked API key, reason only in a header",
+    "expected": "auth_invalid",
+    "rules": {
+      "category": "unknown",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.1,
+      "source": "rules",
+      "summary": "The request failed (403 Forbidden) and no rule recognised the cause."
+    },
+    "auto": {
+      "category": "unknown",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.1,
+      "source": "rules",
+      "summary": "The request failed (403 Forbidden) and no rule recognised the cause."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "x04",
+    "audience": "heldout",
+    "title": "page number past the last page",
+    "expected": "not_found",
+    "rules": {
+      "category": "not_found",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.5,
+      "source": "rules",
+      "summary": "The server has nothing at /v1/catalog."
+    },
+    "auto": {
+      "category": "not_found",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.5,
+      "source": "rules",
+      "summary": "The server has nothing at /v1/catalog."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "x05",
+    "audience": "heldout",
+    "title": "missing API version header",
+    "expected": "bad_parameter",
+    "rules": {
+      "category": "bad_parameter",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.3,
+      "source": "rules",
+      "summary": "The server rejected the request (400) without saying which part is wrong."
+    },
+    "auto": {
+      "category": "bad_parameter",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.3,
+      "source": "rules",
+      "summary": "The server rejected the request (400) without saying which part is wrong."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "x06",
+    "audience": "heldout",
+    "title": "missing Idempotency-Key on a payment",
+    "expected": "bad_parameter",
+    "rules": {
+      "category": "unknown",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.1,
+      "source": "rules",
+      "summary": "The request failed (428 Precondition Required) and no rule recognised the cause."
+    },
+    "auto": {
+      "category": "unknown",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.1,
+      "source": "rules",
+      "summary": "The request failed (428 Precondition Required) and no rule recognised the cause."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "x07",
+    "audience": "heldout",
+    "title": "Basic credentials on a Bearer-only API",
+    "expected": "auth_scheme",
+    "rules": {
+      "category": "auth_invalid",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.55,
+      "source": "rules",
+      "summary": "The server rejected the token."
+    },
+    "auto": {
+      "category": "auth_invalid",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.55,
+      "source": "rules",
+      "summary": "The server rejected the token."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "x08",
+    "audience": "heldout",
+    "title": "expired pre-signed URL",
+    "expected": "auth_expired",
+    "rules": {
+      "category": "unknown",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.1,
+      "source": "rules",
+      "summary": "The request failed (403 Forbidden) and no rule recognised the cause."
+    },
+    "auto": {
+      "category": "unknown",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.1,
+      "source": "rules",
+      "summary": "The request failed (403 Forbidden) and no rule recognised the cause."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "x09",
+    "audience": "heldout",
+    "title": "rate limit reported as 403",
+    "expected": "rate_limited",
+    "rules": {
+      "category": "auth_scope",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.5,
+      "source": "rules",
+      "summary": "You are authenticated but not allowed to do this (403 Forbidden)."
+    },
+    "auto": {
+      "category": "auth_scope",
+      "category_ok": false,
+      "cause_named": false,
+      "confidence": 0.5,
+      "source": "rules",
+      "summary": "You are authenticated but not allowed to do this (403 Forbidden)."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  },
+  {
+    "id": "x10",
+    "audience": "heldout",
+    "title": "Authorization header misspelled",
+    "expected": "auth_missing",
+    "rules": {
+      "category": "auth_missing",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The request had no credentials, so the server refused it."
+    },
+    "auto": {
+      "category": "auth_missing",
+      "category_ok": true,
+      "cause_named": false,
+      "confidence": 0.85,
+      "source": "rules",
+      "summary": "The request had no credentials, so the server refused it."
+    },
+    "llm": null,
+    "llm_note": "",
+    "llm_error": false,
+    "dropped_evidence": 0,
+    "fix_works": null,
+    "notes": []
+  }
+]

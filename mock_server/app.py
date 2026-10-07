@@ -17,10 +17,11 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
-from mock_server import oauth, tokens
+from mock_server import heldout, oauth, tokens
 
 app = FastAPI(title="APIdoc mock API")
 app.include_router(oauth.router)
+app.include_router(heldout.router)  # evals/heldout.json
 GOOD_TOKEN = "good-token"
 GOOD_API_KEY = "good-key"
 

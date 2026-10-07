@@ -1,0 +1,39 @@
+{
+  "notes": [
+    "Held-out set: written and committed before any LLM run, and no APIdoc rule was",
+    "written for these cases. The first recorded run is the reported result, whatever it is.",
+    "Endpoints: mock_server/heldout.py. Same scoring as cases.json."
+  ],
+  "cases": [
+    {"id": "x01", "audience": "heldout", "title": "enum value in the wrong case",
+     "curl": "curl '{base}/v1/orders?status=Shipped'",
+     "expect": {"category": "bad_parameter", "mentions": ["lowercase", "lower case", "case-sensitive", "case sensitive"]}},
+    {"id": "x02", "audience": "heldout", "title": "GraphQL error in a 200 response",
+     "curl": "curl --json '{\"query\": \"{ user(id: 1) { name emial } }\"}' {base}/graphql", "allow_unsafe": true,
+     "expect": {"category": "error_in_success", "mentions": ["emial", "email"]}},
+    {"id": "x03", "audience": "heldout", "title": "revoked API key, reason only in a header",
+     "curl": "curl -H 'X-API-Key: key-2023-old' {base}/v1/reports",
+     "expect": {"category": "auth_invalid", "mentions": ["revoked"]}},
+    {"id": "x04", "audience": "heldout", "title": "page number past the last page",
+     "curl": "curl '{base}/v1/catalog?page=7'",
+     "expect": {"category": "not_found", "mentions": ["total-pages", "total pages", "last page", "only 3", "out of range"]}},
+    {"id": "x05", "audience": "heldout", "title": "missing API version header",
+     "curl": "curl {base}/v1/billing",
+     "expect": {"category": "bad_parameter", "mentions": ["api-version", "api version", "version header"]}},
+    {"id": "x06", "audience": "heldout", "title": "missing Idempotency-Key on a payment",
+     "curl": "curl --json '{\"amount\": 500}' {base}/v1/charges", "allow_unsafe": true,
+     "expect": {"category": "bad_parameter", "mentions": ["idempotency"]}},
+    {"id": "x07", "audience": "heldout", "title": "Basic credentials on a Bearer-only API",
+     "curl": "curl -u demo:hunter2-pass {base}/v1/account",
+     "expect": {"category": "auth_scheme", "mentions": ["bearer"]}},
+    {"id": "x08", "audience": "heldout", "title": "expired pre-signed URL",
+     "curl": "curl '{base}/v1/files/report.csv?X-Expires=1700000000&X-Signature=9f8e7d6c5b4a'",
+     "expect": {"category": "auth_expired", "mentions": ["expired"]}},
+    {"id": "x09", "audience": "heldout", "title": "rate limit reported as 403",
+     "curl": "curl -H 'Authorization: Bearer good-token' {base}/v1/repos",
+     "expect": {"category": "rate_limited", "mentions": ["rate limit", "rate-limit", "ratelimit"]}},
+    {"id": "x10", "audience": "heldout", "title": "Authorization header misspelled",
+     "curl": "curl -H 'Authorisation: Bearer good-token' {base}/v1/profile",
+     "expect": {"category": "auth_missing", "mentions": ["authorisation", "misspel", "spelling", "spelled"]}}
+  ]
+}
